@@ -5,5 +5,25 @@ block content
   p Welcome to #{title}
   script(src="/socket.io/socket.io.js")
   script.
-    var socket = io('//localhost:3000');
+    //- var socket = io('//localhost:3000');
+    var socket = io();
+
+    socket.on('connection', (socket) => {
+ 
+      document.write('socket connected');
+
+      socket.on('disconnect', () => {
+        socket.broadcast.send('disconnected');
+      });
+    });
+
+    socket.on('greeting', (msg) => {
+      document.write('greeting received: ' + msg);
+      socket.emit('reply', {msg: "great! how about you?"});
+    });
+
+    
+
+
+    
   

@@ -1,10 +1,3 @@
-// module.exports = function (io) {
-//     io.on('connection', function(socket){
-//         console.log('A user connected');
-//     });
-
-// }
-
 var socket_io = require('socket.io');
 var io = socket_io();
 var socketApi = {};
@@ -17,6 +10,15 @@ console.log("herehello");
 
 io.on('connection', function(socket){
     console.log('A user connected');
+
+    socket.emit('greeting', 'hello, how are you?'); 
+
+    socket.on('reply', (msg) => {
+        console.log('reply received: ' + msg);
+       
+    });
+
+
 });
 
 socketApi.sendNotification = function() {
@@ -24,6 +26,7 @@ socketApi.sendNotification = function() {
     io.sockets.emit('hello', {msg: 'Hello World!'});
     console.log('in sendNotification');
 }
+
 
 
 module.exports = socketApi;
