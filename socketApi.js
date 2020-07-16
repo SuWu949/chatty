@@ -5,19 +5,17 @@ var socketApi = {};
 
 socketApi.io = io;
 
-console.log("herehello");
-
-
 io.on('connection', function(socket){
     console.log('A user connected');
 
-    socket.emit('greeting', 'hello, how are you?'); 
-
-    socket.on('reply', (msg) => {
-        console.log('reply received: ' + msg);
-       
+    socket.on('disconnect', () => {
+        console.log('A user disconnected');
     });
 
+    socket.on('chat message', (msg) => {
+       console.log('message: ' + msg);
+       io.emit('chat message', msg);
+    });
 
 });
 

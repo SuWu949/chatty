@@ -41,5 +41,4 @@ app.use(function(err, req, res, next) {
   });
 });
 
-// export express app and socket.io server
 module.exports = app;
