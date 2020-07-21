@@ -2,6 +2,7 @@ var express = require('express');
 var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
+var cors = require('cors');
 var bodyParser = require('body-parser');
 var createError = require('http-errors');
 
@@ -13,6 +14,8 @@ var http  = require('http');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
+
+app.use(cors());
 
 app.use(logger('dev'));
 app.use(bodyParser.json());

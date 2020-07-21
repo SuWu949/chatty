@@ -1,11 +1,9 @@
 var express = require('express');
 var router = express.Router();
-
 var controlRouter = require('./control');
-
-
 var socketApi = require('../socketApi');
-var io = socketApi.io;
+
+router.use('/control', controlRouter);
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -13,10 +11,5 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Toy Chat' });
   
 });
-
-// socketApi.sendNotification();
-
-router.use('/control', controlRouter);
-
 
 module.exports = router;
