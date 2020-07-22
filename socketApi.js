@@ -1,9 +1,13 @@
 var socket_io = require('socket.io');
+// var bimap = require("bimap");
+
 var io = socket_io();
 var socketApi = {};
 var socketConnections = {}; 
 var tempCounter = 0; 
 
+
+// var socketConnections2 = new BiMap;
 
 socketApi.io = io;
 
@@ -13,10 +17,13 @@ io.on('connection', function(socket){
 
     // add socket into dictionary 
     socketConnections[tempCounter] = socket;
+    // socketConnections2.push(tempCounter, socket); //
     console.log('User ' + tempCounter + " connected with socket.id: " + socket.id);
 
+    socket.emit('chat message', 'User ' + tempCounter);
+
     socket.on('disconnect', () => {
-        console.log('A user disconnected');
+        console.log('Socket ' + socket.id + ' disconnected');
     });
 
     socket.on('chat message', (msg) => {
@@ -26,22 +33,60 @@ io.on('connection', function(socket){
 
 });
 
-var batchSubscribe = (userId, rooms) => {
+// subscribe a user socket to one or more rooms 
+var subscribe = (userId, channels) => {
 
     var userSocket = socketConnections[userId];
-    userSocket.join(rooms, () => {
+    // var userSocket = socketConnections2.key(userId); //
+    userSocket.join(channels, () => {
         const subscriptions = Object.keys(userSocket.rooms);
-        console.log(subscriptions);
+        console.log("All current subscriptions: " + subscriptions);
     });
 };
 
-var notifyRoom = (room, msg) => {
-    io.to(room).emit('chat message', msg);
-}
+// unsubscribe a user from one room 
+var unsubscribe = (userId, channel) => {
+
+    var userSocket = socketConnections[userId]; 
+    // var userSocket = socketConnections2.key(userId); //
+    userSocket.leave(channel, () => {
+        const subscriptions = Object.keys(userSocket.rooms);
+        console.log("All current subscriptions: " + subscriptions);
+    });
+};
+
+// send 'chat message' events to one specified room // make the event more general? (
+// somehwere to read in your different event types declare in one file )
+var notifyChannel = (channel, msg) => {
+    io.to(channel).emit('chat message', msg);
+};
+
+// get channel subscriptions by userId
+var getSubscriptions = (userId) => {
+    var userSocket = socketConnections[userId]; 
+    // var userSocket = socketConnections2.key(userId); //
+    const subscriptions = Object.keys(userSocket.rooms);
+
+    // removes socketId at index 0 
+    var socketId = subscriptions.shift();
+    return subscriptions;
+};
+
+
+// get participants (socket ids) in channel 
+var getParticipants = (channel) => {
+
+    var channelSockets= io.sockets.adapter.rooms[channel].sockets
+    return channelSockets; 
+};
+
 
 module.exports = {
     io: io,  
-    batchSubscribe: batchSubscribe, 
-    notifyRoom: notifyRoom
+    subscribe: subscribe, 
+    unsubscribe: unsubscribe,
+    notifyChannel: notifyChannel,
+    getSubscriptions: getSubscriptions,
+    getParticipants: getParticipants
 
 };

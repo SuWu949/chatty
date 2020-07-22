@@ -2,21 +2,36 @@ var express = require('express');
 var router = express.Router();
 var socketApi = require('../socketApi');
 
-router.put('/batchsubscribe', function(req, res, next) {
-  var userId = req.query.userId; 
-  var rooms = JSON.parse(req.query.rooms); 
+var notifyRouter = require('./notify');
+var searchRouter = require('./search');
 
-  socketApi.batchSubscribe(userId, rooms); 
+router.use('/notify', notifyRouter);
+router.use('/search', searchRouter);
+
+// subscribe user to one or more rooms
+router.put('/subscribe', function(req, res, next) {
+  var userId = req.query.userId; 
+  var channels = JSON.parse(req.query.channels); 
+
+  // subscribe user socket to rooms 
+  console.log('subscribe hit');
+  socketApi.subscribe(userId, channels); 
   res.status(200).json({ msg: 'Subscribed' });
 }); 
 
-router.post('/notify', function(req, res, next) {
-  var room = req.query.room; 
-  var msg = req.query.msg; 
 
-  socketApi.notifyRoom(room, msg);
 
-  res.send("Sent");
+router.put('/unsubscribe', function(req, res, next) {
+  
+  console.log('unsubscribe hit');
+  
+  var userId = req.query.userId; 
+  var channel = req.query.channel; 
+
+  
+  socketApi.unsubscribe(userId, channel); 
+  res.send("Unsubscribed");
 });
+
 
 module.exports = router;
