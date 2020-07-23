@@ -7,7 +7,6 @@ router.use('/control', controlRouter);
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  // res.status(200).json({ message: 'Connected!' });
   res.render('index', { title: 'Toy Chat' });
   
 });

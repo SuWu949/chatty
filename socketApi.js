@@ -20,7 +20,7 @@ io.on('connection', function(socket){
     // socketConnections2.push(tempCounter, socket); //
     console.log('User ' + tempCounter + " connected with socket.id: " + socket.id);
 
-    socket.emit('chat message', 'User ' + tempCounter);
+    socket.emit('chat message', 'User ' + tempCounter + ' socket.id: ' + socket.id);
 
     socket.on('disconnect', () => {
         console.log('Socket ' + socket.id + ' disconnected');
@@ -34,14 +34,50 @@ io.on('connection', function(socket){
 });
 
 // subscribe a user socket to one or more rooms 
-var subscribe = (userId, channels) => {
+var subscribeByUser = (userIds, channels) => {
 
-    var userSocket = socketConnections[userId];
-    // var userSocket = socketConnections2.key(userId); //
-    userSocket.join(channels, () => {
-        const subscriptions = Object.keys(userSocket.rooms);
-        console.log("All current subscriptions: " + subscriptions);
-    });
+    for (var i = 0; i < userIds.length; i++) {
+
+        var userId = userIds[i];
+        if (userId in socketConnections) {
+
+            var userSocket = socketConnections[userId];
+            userSocket.join(channels);
+            // // var userSocket = socketConnections2.key(userId); //
+            // userSocket.join(channels, () => {
+            //     const subscriptions = Object.keys(userSocket.rooms);
+            //     console.log("All current subscriptions: " + subscriptions);
+            // });
+        } else {
+            console.log('User not found.');
+        }
+    }
+};
+
+// subscribe all users subscribed to 'channels' to 'newChannels' as well
+var subscribeByChannel = (channels, newChannels) => { 
+
+    for (var i = 0; i < channels.length; i++) {
+        
+        var channel = channels[i];
+        console.log('curr channel: ' + channel);
+
+        var channelInfo = io.sockets.adapter.rooms[channel];
+        if (typeof channelInfo !== 'undefined' && channelInfo) {
+            
+            //target channel exists (has sockets subscribed)
+            var userSockets = Object.keys(channelInfo.sockets);
+            console.log('userSockets: ' + userSockets);
+
+            // subscribe all sockets subscribed to channel to newChannels as well
+            userSockets.forEach(function(socketId) {
+
+                // look up socket obj by id
+                var socket = io.sockets.connected[socketId];
+                socket.join(newChannels);
+            });
+        } 
+    }
 };
 
 // unsubscribe a user from one room 
@@ -83,10 +119,11 @@ var getParticipants = (channel) => {
 
 module.exports = {
     io: io,  
-    subscribe: subscribe, 
+    subscribeByUser: subscribeByUser, 
     unsubscribe: unsubscribe,
     notifyChannel: notifyChannel,
     getSubscriptions: getSubscriptions,
-    getParticipants: getParticipants
+    getParticipants: getParticipants, 
+    subscribeByChannel: subscribeByChannel
 
 };
