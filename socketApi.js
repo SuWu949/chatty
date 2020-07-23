@@ -80,22 +80,85 @@ var subscribeByChannel = (channels, newChannels) => {
     }
 };
 
-// unsubscribe a user from one room 
-var unsubscribe = (userId, channel) => {
+// unsubscribe 'userIds' from 'channels'
+var unsubscribeByUser = (userIds, channels) => { 
 
-    var userSocket = socketConnections[userId]; 
-    // var userSocket = socketConnections2.key(userId); //
-    userSocket.leave(channel, () => {
-        const subscriptions = Object.keys(userSocket.rooms);
-        console.log("All current subscriptions: " + subscriptions);
-    });
+    for (var i = 0; i < userIds.length; i++) {
+
+        var userId = userIds[i];
+        var userSocket = socketConnections[userId];
+
+        for (var j = 0; j < channels.length; j++) { 
+
+            var channel = channels[j];
+            userSocket.leave(channel);
+        }
+    }
 };
 
-// send 'chat message' events to one specified room // make the event more general? (
-// somehwere to read in your different event types declare in one file )
-var notifyChannel = (channel, msg) => {
-    io.to(channel).emit('chat message', msg);
+// unsubscribe all users from 'channels'
+var unsubscribeByChannel = (channels) => { 
+
+    for (var i = 0; i < channels.length; i++) {
+
+        var channel = channels[i];
+
+        var channelInfo = io.sockets.adapter.rooms[channel];
+        if (typeof channelInfo !== 'undefined' && channelInfo) {
+            
+            //target channel exists (has sockets subscribed)
+            var userSockets = Object.keys(channelInfo.sockets);
+            console.log('userSockets: ' + userSockets);
+
+            // unsubscribe all sockets subscribed to channel 
+            userSockets.forEach(function(socketId) {
+
+                // look up socket obj by id
+                var socket = io.sockets.connected[socketId];
+                socket.leave(channel);
+            });
+        } 
+    }
+}
+
+
+// // unsubscribe a user from one room 
+// function unsubscribe(userId, channel) = {
+
+//     var userSocket = socketConnections[userId]; 
+//     // var userSocket = socketConnections2.key(userId); //
+//     userSocket.leave(channel, () => {
+//         const subscriptions = Object.keys(userSocket.rooms);
+//         console.log("All current subscriptions: " + subscriptions);
+//     });
+// };
+
+
+// only once if uesr in multiple channels , no duplicate messages 
+var notifyChannels = (channels, msg) => {
+    
+    var emitStr = 'io';
+    for (var i = 0; i < channels.length; i++) {
+
+        var channel = channels[i];
+        var newEmit = '.to(\'' + channel + '\')';
+        emitStr += newEmit; 
+    }
+    emitStr += '.emit(\'chat message\', \'' + msg + '\');';
+    console.log('emitStr: ' + emitStr);
+    eval(emitStr);
 };
+
+var notifyUsers = (userIds, msg) => {
+
+    for (var i = 0; i < userIds.length; i++) {
+
+        var userId = userIds[i];
+        var socket = socketConnections[userId];
+        console.log('emitting to socket: ' + socket.id);
+        io.to(socket.id).emit('chat message', msg);
+    }
+}
 
 // get channel subscriptions by userId
 var getSubscriptions = (userId) => {
@@ -120,10 +183,12 @@ var getParticipants = (channel) => {
 module.exports = {
     io: io,  
     subscribeByUser: subscribeByUser, 
-    unsubscribe: unsubscribe,
-    notifyChannel: notifyChannel,
+    subscribeByChannel: subscribeByChannel,
+    // unsubscribe: unsubscribe,
+    unsubscribeByUser: unsubscribeByUser,
+    unsubscribeByChannel: unsubscribeByChannel,
+    notifyChannels: notifyChannels, 
+    notifyUsers: notifyUsers,
     getSubscriptions: getSubscriptions,
-    getParticipants: getParticipants, 
-    subscribeByChannel: subscribeByChannel
-
+    getParticipants: getParticipants
 };
