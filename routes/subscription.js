@@ -81,14 +81,5 @@ router.post('/unsubscribe', function(req, res, next) {
     
 });
 
-// router.put('/unsubscribe', function(req, res, next) {
-//     var userId = req.query.userId; 
-//         var channel = req.query.channel; 
-
-//         socketApi.unsubscribe(userId, channel); 
-//         res.send("Unsubscribed");
-
-// });
-
 module.exports = router;
   

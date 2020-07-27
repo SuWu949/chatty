@@ -121,19 +121,6 @@ var unsubscribeByChannel = (channels) => {
     }
 }
 
-
-// // unsubscribe a user from one room 
-// function unsubscribe(userId, channel) = {
-
-//     var userSocket = socketConnections[userId]; 
-//     // var userSocket = socketConnections2.key(userId); //
-//     userSocket.leave(channel, () => {
-//         const subscriptions = Object.keys(userSocket.rooms);
-//         console.log("All current subscriptions: " + subscriptions);
-//     });
-// };
-
-
 // only once if uesr in multiple channels , no duplicate messages 
 var notifyChannels = (channels, msg) => {
     
@@ -149,14 +136,15 @@ var notifyChannels = (channels, msg) => {
     eval(emitStr);
 };
 
-var notifyUsers = (userIds, msg) => {
+var notifyUsers = (userIds, eventName, eventParams) => {
 
     for (var i = 0; i < userIds.length; i++) {
 
         var userId = userIds[i];
         var socket = socketConnections[userId];
         console.log('emitting to socket: ' + socket.id);
-        io.to(socket.id).emit('chat message', msg);
+
+        io.to(socket.id).emit(eventName, eventParams);
     }
 }
 
@@ -184,7 +172,6 @@ module.exports = {
     io: io,  
     subscribeByUser: subscribeByUser, 
     subscribeByChannel: subscribeByChannel,
-    // unsubscribe: unsubscribe,
     unsubscribeByUser: unsubscribeByUser,
     unsubscribeByChannel: unsubscribeByChannel,
     notifyChannels: notifyChannels, 
