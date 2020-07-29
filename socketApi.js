@@ -1,15 +1,17 @@
 var socket_io = require('socket.io');
-// var bimap = require("bimap");
+var passportAuth = require('./passportAuth');
 
 var io = socket_io();
 var socketApi = {};
 var socketConnections = {}; 
 var tempCounter = 0; 
 
-
-// var socketConnections2 = new BiMap;
-
 socketApi.io = io;
+
+// require authentication for each socket connection
+var options = passportAuth.options;
+var verify = passportAuth.verify;
+io.use(passportAuth.authorize(options, verify));
 
 io.on('connection', function(socket){
 

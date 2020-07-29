@@ -37,7 +37,8 @@ router.post('/', function(req, res, next) {
     if (flag === 'channels') {
         //TODO: generalize for other events, may need to self implement set, avoid eval()
         var channels = queryArr[0].split(',');
-        var msg = parseEvent(req);
+        var msg = req.body.attributes.msg;
+        // var msg = parseMsg(req);
 
         socketApi.notifyChannels(channels, msg);
         res.status(200).json({msg : 'Notified'});

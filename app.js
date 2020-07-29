@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var cors = require('cors');
 var bodyParser = require('body-parser');
 var createError = require('http-errors');
+var passport = require('passport');
 
 var router = require('./routes');
 
@@ -25,7 +26,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname + '/node_modules'));
-
+app.use(passport.initialize());
 
 // connect all routes to app
 app.use('/', router);
