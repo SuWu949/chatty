@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 var cors = require('cors');
 var bodyParser = require('body-parser');
 var createError = require('http-errors');
-var passport = require('passport');
+var passport = require('./config/passportAuth').passport; // 
 
 var router = require('./routes');
 

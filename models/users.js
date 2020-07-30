@@ -3,16 +3,16 @@ const { Schema } = mongoose;
 
 const userSchema = new Schema({
   username: {
-    type: String,
-    index: true,
-    unique: true,
-    dropDups: true,
-    required: true,
+	type: String,
+	index: true,
+	unique: true,
+	dropDups: true,
+	required: true,
   },
 
   passwordHash: {               //salted and hashed using bcrypt
-    type: String,
-    required: true,
+	type: String,
+	required: true,
   },
 
   // jti

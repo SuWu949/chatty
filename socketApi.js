@@ -1,17 +1,16 @@
 var socket_io = require('socket.io');
-var passportAuth = require('./passportAuth');
+var passportAuth = require('./config/passportAuth');
 
 var io = socket_io();
 var socketApi = {};
-var socketConnections = {}; 
+var socketConnections = {};             // mapping of user ids to socket objs
 var tempCounter = 0; 
 
 socketApi.io = io;
 
 // require authentication for each socket connection
-var options = passportAuth.options;
-var verify = passportAuth.verify;
-io.use(passportAuth.authorize(options, verify));
+io.use(passportAuth.authorize());
+
 
 io.on('connection', function(socket){
 
@@ -20,6 +19,10 @@ io.on('connection', function(socket){
     // add socket into dictionary 
     socketConnections[tempCounter] = socket;
     // socketConnections2.push(tempCounter, socket); //
+    // print dictionary 
+    // console.log('socketConnections: ');
+    // console.log(socketConnections, null, 2);
+
     console.log('User ' + tempCounter + " connected with socket.id: " + socket.id);
 
     socket.emit('chat message', 'User ' + tempCounter + ' socket.id: ' + socket.id);
@@ -179,5 +182,6 @@ module.exports = {
     notifyChannels: notifyChannels, 
     notifyUsers: notifyUsers,
     getSubscriptions: getSubscriptions,
-    getParticipants: getParticipants
+    getParticipants: getParticipants, 
+    socketConnections: socketConnections
 };
