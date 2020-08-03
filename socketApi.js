@@ -1,31 +1,18 @@
 var socket_io = require('socket.io');
 var passportAuth = require('./config/passportAuth');
 
+var socketConnections = passportAuth.socketConnections;
+
 var io = socket_io();
 var socketApi = {};
-var socketConnections = {};             // mapping of user ids to socket objs
-var tempCounter = 0; 
-
 socketApi.io = io;
 
 // require authentication for each socket connection
 io.use(passportAuth.authorize());
 
-
 io.on('connection', function(socket){
 
-    tempCounter += 1;
-
-    // add socket into dictionary 
-    socketConnections[tempCounter] = socket;
-    // socketConnections2.push(tempCounter, socket); //
-    // print dictionary 
-    // console.log('socketConnections: ');
-    // console.log(socketConnections, null, 2);
-
-    console.log('User ' + tempCounter + " connected with socket.id: " + socket.id);
-
-    socket.emit('chat message', 'User ' + tempCounter + ' socket.id: ' + socket.id);
+    socket.emit('chat message', 'User connected with socket: ' + socket.id);  // lookup user id? bimap
 
     socket.on('disconnect', () => {
         console.log('Socket ' + socket.id + ' disconnected');
