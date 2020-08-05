@@ -1,11 +1,11 @@
+const config = require('./config');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
-// const UserModel = require('../models/users');		// mongoose
-const users = require('../models/users').users;
-
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
+
+const users = require('../models/users').users;
 
 var socketConnections = {}; 				// mapping of user ids to socket objs
 
@@ -49,15 +49,15 @@ passport.use(new LocalStrategy(
 
 // set passport-jwt options
 var options =  {
-	jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),     
-	secretOrKey: 'testSecret'                                           // query app server endpoint for secre 
+	jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),    
+	secretOrKey: config.auth.jwtSecret                                         
 }
 
 // define callback
 function verify(jwtPayload, done) { 
 	// token is valid 
 	// we can still additionally verify the token (based on payload)
-	// the user passed is set to socket.request.user (jwtPayload?)
+	// the jwtPayload passed is set to socket.request.user 
 
 	// console.log('jwtPayload: ');
 	// console.log(JSON.stringify(jwtPayload, null, 2));
@@ -65,13 +65,21 @@ function verify(jwtPayload, done) {
 	done(null, jwtPayload);     //authenticated payload
 }
 
+// intial new strategy config
+var jwtStrategy = new JwtStrategy(options, verify); 
+
+// call to update secret 
+module.exports.reconfigure = () => { 
+	console.log('pre options secret: ' + options.secretOrKey);
+	options.secretOrKey = config.auth.jwtSecret;
+	jwtStrategy = new JwtStrategy(options, verify);
+	console.log('post options secret: ' + options.secretOrKey);
+}
+
 //  config jwt strategy 
-module.exports.authorize = () => {
-  	const jwtStrategy = new JwtStrategy(options, verify);
+module.exports.authorize = (socket, next) => {
   
   	return function authorize (socket, next) {
-		// console.log('socket.handshake: ');
-		// console.log(JSON.stringify(socket.handshake, null, 2));
 
 		const header = socket.handshake.headers['authorization'];
 		console.log('header: ' + header);
@@ -86,10 +94,6 @@ module.exports.authorize = () => {
 
 			// log user id socket connection
 			socketConnections[jwtPayload.username] = socket;
-			
-			// debug print dictionary
-			// console.log('socketConnectiions: ');
-			// console.log(socketConnections);
 
 			console.log('Authenticated socket for user: ' + jwtPayload.username);
 			next();

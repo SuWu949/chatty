@@ -1,3 +1,5 @@
+console.log(require('dotenv').config()); 
+
 var express = require('express');
 var path = require('path');
 var logger = require('morgan');
@@ -5,12 +7,11 @@ var cookieParser = require('cookie-parser');
 var cors = require('cors');
 var bodyParser = require('body-parser');
 var createError = require('http-errors');
-var passport = require('./config/passportAuth').passport; // 
+var passport = require('./config/passportAuth').passport;
 
 var router = require('./routes');
 
 var app = express();
-var http  = require('http');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

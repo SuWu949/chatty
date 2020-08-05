@@ -1,20 +1,21 @@
-
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-// const keys = require('../keys');
-// const UserModel = require('../models/users');  // mongoose config
-
-var router = express.Router();
-var passport = require('../config/passportAuth').passport;
+const config = require('../config/config');
 var users = require('../models/users').users;
+var router = express.Router();
+var passportAuth = require('../config/passportAuth');
+var passport = passportAuth.passport;
 
+// TODO: add auth on route? 
+router.put('/jwtsecret', (req, res) => {
 
-// TODO: update jwt secret 
-router.get('/jwtsecret,', (req, res) => {
+    const newSecret = req.body.secret;
+    config.auth.jwtSecret = newSecret; 
 
+    passportAuth.reconfigure();         // reconfigure passport-jwt strategy
 
-
+    res.status(200).send({ msg: 'Updated jwt secret' });
 });
 
 router.post('/register', async (req, res) => {
@@ -49,9 +50,6 @@ router.post('/register', async (req, res) => {
         //     console.log('User ' + doc.username + ' successfully saved.');
         //     console.log('alt success');
         // });
-
-        console.log('entry');
-        console.log(users[newUsername]);
     
         res.status(200).send({ newUsername });
       
@@ -81,7 +79,8 @@ router.post('/login',
             }
 
             // generate signed JWT 
-            const token = jwt.sign(JSON.stringify(payload), 'testSecret');              // config file secret 
+            const token = jwt.sign(JSON.stringify(payload), config.auth.jwtSecret);   
+            console.log('secret: ' + config.auth.jwtSecret);
             console.log('signed JWT token: ' + token);
 
             // assign JWT to cookie 
