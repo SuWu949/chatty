@@ -1,26 +1,16 @@
 var socket_io = require('socket.io');
-// var bimap = require("bimap");
+var passportAuth = require('./config/passportAuth'); 
+
+var socketConnections = passportAuth.socketConnections;
 
 var io = socket_io();
-var socketApi = {};
-var socketConnections = {}; 
-var tempCounter = 0; 
 
-
-// var socketConnections2 = new BiMap;
-
-socketApi.io = io;
+// require authentication for each socket connection
+io.use(passportAuth.authorize());
 
 io.on('connection', function(socket){
 
-    tempCounter += 1;
-
-    // add socket into dictionary 
-    socketConnections[tempCounter] = socket;
-    // socketConnections2.push(tempCounter, socket); //
-    console.log('User ' + tempCounter + " connected with socket.id: " + socket.id);
-
-    socket.emit('chat message', 'User ' + tempCounter + ' socket.id: ' + socket.id);
+    socket.emit('chat message', 'User connected with socket: ' + socket.id);  // lookup user id? bimap
 
     socket.on('disconnect', () => {
         console.log('Socket ' + socket.id + ' disconnected');
@@ -159,14 +149,12 @@ var getSubscriptions = (userId) => {
     return subscriptions;
 };
 
-
 // get participants (socket ids) in channel 
 var getParticipants = (channel) => {
 
     var channelSockets= io.sockets.adapter.rooms[channel].sockets
     return channelSockets; 
 };
-
 
 module.exports = {
     io: io,  
@@ -177,5 +165,6 @@ module.exports = {
     notifyChannels: notifyChannels, 
     notifyUsers: notifyUsers,
     getSubscriptions: getSubscriptions,
-    getParticipants: getParticipants
+    getParticipants: getParticipants, 
+    socketConnections: socketConnections
 };

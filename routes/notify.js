@@ -2,7 +2,6 @@ var express = require('express');
 var router = express.Router();
 var socketApi = require('../socketApi');
 
-
 // TODO: more general event parsing, may not need
 function parseEvent(req) { 
     console.log('in parseMsg');
@@ -37,7 +36,8 @@ router.post('/', function(req, res, next) {
     if (flag === 'channels') {
         //TODO: generalize for other events, may need to self implement set, avoid eval()
         var channels = queryArr[0].split(',');
-        var msg = parseEvent(req);
+        var msg = req.body.attributes.msg;
+        // var msg = parseMsg(req);
 
         socketApi.notifyChannels(channels, msg);
         res.status(200).json({msg : 'Notified'});
@@ -51,7 +51,6 @@ router.post('/', function(req, res, next) {
         // var eventParams = req.body.attributes;
 
         console.log('userIds: ' + userIds);
-        console.log(typeof eventParams);
         console.log('eventParams: ' + eventParams);
 
         socketApi.notifyUsers(userIds, eventName, eventParams);

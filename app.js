@@ -1,3 +1,5 @@
+console.log(require('dotenv').config()); 
+
 var express = require('express');
 var path = require('path');
 var logger = require('morgan');
@@ -5,17 +7,18 @@ var cookieParser = require('cookie-parser');
 var cors = require('cors');
 var bodyParser = require('body-parser');
 var createError = require('http-errors');
+var passport = require('./config/passportAuth').passport;
 
 var router = require('./routes');
 
 var app = express();
-var http  = require('http');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(cors());
+app.use(cors());       // TODO: specify which origins be more restrictive
+
 
 app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -25,7 +28,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname + '/node_modules'));
-
+app.use(passport.initialize());
 
 // connect all routes to app
 app.use('/', router);

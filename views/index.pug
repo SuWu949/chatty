@@ -20,7 +20,16 @@ block content
   script(src='https://code.jquery.com/jquery-3.4.1.min.js')
   script.
     $(function () {
-      var socket = io();
+      var socket = io('/', 
+                        {
+                          transportOptions: {
+                            polling: {
+                              extraHeaders: {
+                                'Authorization': 'bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3RVc2VybmFtZSJ9.8VaUL5fjo-cY79SkGPnsavOfZXZaustZ3KvFMNp7Hy0'
+                              }
+                            }
+                          }
+                        });
 
       // message sent
       $('form').submit(function(e) {
@@ -28,7 +37,7 @@ block content
         socket.emit('chat message', $('#m').val());
         $('#m').val('');
         return false;
-      });ßß
+      });
 
       // message received 
       socket.on('chat message', function(eventParams){
