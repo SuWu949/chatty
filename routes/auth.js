@@ -7,6 +7,16 @@ var router = express.Router();
 var passportAuth = require('../config/passportAuth');
 var passport = passportAuth.passport;
 
+router.get('/testJwt', passport.authenticate('jwt', { session: false }),
+function(req, res) {
+
+    // console.log('called');
+    console.log('authenticated jwt');
+    var jwt = req.header('authorization');
+    console.log('jwt:' + jwt);
+    res.status(200).send({ msg: 'recevied jwt'}); 
+});
+
 // TODO: add auth on route? 
 router.put('/jwtsecret', (req, res) => {
 

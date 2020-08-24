@@ -4,9 +4,9 @@
  * Module dependencies.
  */
 
-var app = require('../app');
+var app = require('../app');  
 var debug = require('debug')('chatty:server');
-var http = require('http');
+var http = require('http'); 
 
 /**
  * Get port from environment and store in Express.
@@ -19,7 +19,7 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+var server = http.createServer(app); 
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -35,9 +35,23 @@ server.on('listening', onListening);
  * Socket.io
  */
 
-var socketApi = require('../socketApi');
-var io = socketApi.io;
-io.attach(server);
+var socketApi = require('../socketApi');   
+var io = socketApi.io;                     
+
+io.attach(server, {
+      handlePreflightRequest: (req, res) => {
+        const headers = {
+            "Access-Control-Allow-Headers": "Authorization, Origin",
+            "Access-Control-Allow-Origin": req.headers.origin, //or the specific origin you want to give access to,
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Credentials": true
+        };
+        
+        console.log('hello preflight');
+        res.writeHead(200, headers);
+        res.end();
+    }
+});
 
 /**
  * Normalize a port into a number, string, or false.

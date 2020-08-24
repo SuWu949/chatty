@@ -17,7 +17,8 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(cors());
+app.use(cors());       // TODO: specify which origins be more restrictive
+
 
 app.use(logger('dev'));
 app.use(bodyParser.json());

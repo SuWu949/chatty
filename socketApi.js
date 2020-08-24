@@ -1,11 +1,9 @@
 var socket_io = require('socket.io');
-var passportAuth = require('./config/passportAuth');
+var passportAuth = require('./config/passportAuth'); 
 
 var socketConnections = passportAuth.socketConnections;
 
 var io = socket_io();
-var socketApi = {};
-socketApi.io = io;
 
 // require authentication for each socket connection
 io.use(passportAuth.authorize());
@@ -151,14 +149,12 @@ var getSubscriptions = (userId) => {
     return subscriptions;
 };
 
-
 // get participants (socket ids) in channel 
 var getParticipants = (channel) => {
 
     var channelSockets= io.sockets.adapter.rooms[channel].sockets
     return channelSockets; 
 };
-
 
 module.exports = {
     io: io,  

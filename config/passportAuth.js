@@ -59,20 +59,22 @@ function verify(jwtPayload, done) {
 	// we can still additionally verify the token (based on payload)
 	// the jwtPayload passed is set to socket.request.user 
 
-	// console.log('jwtPayload: ');
-	// console.log(JSON.stringify(jwtPayload, null, 2));
+	console.log('jwtPayload: ');
+	console.log(JSON.stringify(jwtPayload, null, 2));
 
 	done(null, jwtPayload);     //authenticated payload
 }
 
 // intial new strategy config
 var jwtStrategy = new JwtStrategy(options, verify); 
+passport.use(jwtStrategy);
 
 // call to update secret 
 module.exports.reconfigure = () => { 
 	console.log('pre options secret: ' + options.secretOrKey);
 	options.secretOrKey = config.auth.jwtSecret;
 	jwtStrategy = new JwtStrategy(options, verify);
+	passport.use(jwtStrategy);
 	console.log('post options secret: ' + options.secretOrKey);
 }
 
@@ -89,13 +91,14 @@ module.exports.authorize = (socket, next) => {
 			// jwtPayload parameter from done() call in verify callback 
 
 			// create user property 
-			console.log('socket.id: ' + socket.id);
-			socket.handshake.user = jwtPayload.username;
+			// console.log('socket.id: ' + socket.id);
+			// socket.handshake.user = jwtPayload.username;
+			console.log('jti: ' + jwtPayload.jti);
 
 			// log user id socket connection
-			socketConnections[jwtPayload.username] = socket;
+			socketConnections[jwtPayload.sub] = socket;
 
-			console.log('Authenticated socket for user: ' + jwtPayload.username);
+			console.log('Authenticated socket for user id: ' + jwtPayload.sub);
 			next();
 		}
 

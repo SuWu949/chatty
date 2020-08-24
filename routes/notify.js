@@ -2,7 +2,6 @@ var express = require('express');
 var router = express.Router();
 var socketApi = require('../socketApi');
 
-
 // TODO: more general event parsing, may not need
 function parseEvent(req) { 
     console.log('in parseMsg');
@@ -52,7 +51,6 @@ router.post('/', function(req, res, next) {
         // var eventParams = req.body.attributes;
 
         console.log('userIds: ' + userIds);
-        console.log(typeof eventParams);
         console.log('eventParams: ' + eventParams);
 
         socketApi.notifyUsers(userIds, eventName, eventParams);
