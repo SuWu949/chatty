@@ -25,33 +25,28 @@ function parseEvent(req) {
 
 router.post('/', function(req, res, next) {
 
-    console.log('in notify');
     var query = req.query.q; 
     var queryArr = query.split(':');
 
     // remove element at index 0
     var flag = queryArr.shift();
 
-    console.log('flag: ' + flag);
     if (flag === 'channels') {
-        //TODO: generalize for other events, may need to self implement set, avoid eval()
         var channels = queryArr[0].split(',');
-        var msg = req.body.attributes.msg;
-        // var msg = parseMsg(req);
+        var eventName = req.body.event;
+        var eventParams = req.body.attributes; 
 
-        socketApi.notifyChannels(channels, msg);
+        socketApi.notifyChannels(channels, eventName, eventParams);
         res.status(200).json({msg : 'Notified'});
 
     } else if (flag == 'users') { 
-        //TODO: client side parse JSON object emit event
         var userIds = queryArr[0].split(',');
-        // var eventParams = parseEvent(req);
         var eventName = req.body.event; 
-        var eventParams = JSON.stringify(req.body.attributes);
-        // var eventParams = req.body.attributes;
+        var eventParams = req.body.attributes;
 
-        console.log('userIds: ' + userIds);
-        console.log('eventParams: ' + eventParams);
+        // console.log('userIds: ' + userIds);
+        // console.log('eventName: ' + eventName);
+        // console.log('eventParams: ' + JSON.stringify(eventParams));
 
         socketApi.notifyUsers(userIds, eventName, eventParams);
         res.status(200).json({msg : 'Notified'});

@@ -10,7 +10,8 @@ io.use(passportAuth.authorize());
 
 io.on('connection', function(socket){
 
-    socket.emit('chat message', 'User connected with socket: ' + socket.id);  // lookup user id? bimap
+    socket.emit('chat message', {msg: 'User connected with socket: ' + socket.id});  // lookup user id? bimap
+    console.log('Socket ' + socket.id + ' connected.');
 
     socket.on('disconnect', () => {
         console.log('Socket ' + socket.id + ' disconnected');
@@ -29,10 +30,15 @@ var subscribeByUser = (userIds, channels) => {
     for (var i = 0; i < userIds.length; i++) {
 
         var userId = userIds[i];
+        // console.log('userId: ' + userId); 
+        // console.log(socketConnections);
+        console.log('channels to join: ' + channels);
+
         if (userId in socketConnections) {
 
             var userSocket = socketConnections[userId];
             userSocket.join(channels);
+
             // // var userSocket = socketConnections2.key(userId); //
             // userSocket.join(channels, () => {
             //     const subscriptions = Object.keys(userSocket.rooms);
@@ -42,6 +48,13 @@ var subscribeByUser = (userIds, channels) => {
             console.log('User not found.');
         }
     }
+    setTimeout(() => { 
+                        console.log('Current subscriptions for user id: ' + userId); 
+                        console.log(Object.keys(userSocket.rooms));
+                    },
+                1000);
+    // console.log('Current subscriptions for user id: ' + userId); 
+    // console.log(Object.keys(userSocket.rooms));
 };
 
 // subscribe all users subscribed to 'channels' to 'newChannels' as well
@@ -112,7 +125,7 @@ var unsubscribeByChannel = (channels) => {
 }
 
 // only once if uesr in multiple channels , no duplicate messages 
-var notifyChannels = (channels, msg) => {
+var notifyChannels = (channels, eventName, eventParams) => {
     
     var emitStr = 'io';
     for (var i = 0; i < channels.length; i++) {
@@ -121,7 +134,7 @@ var notifyChannels = (channels, msg) => {
         var newEmit = '.to(\'' + channel + '\')';
         emitStr += newEmit; 
     }
-    emitStr += '.emit(\'chat message\', \'' + msg + '\');';
+    emitStr += '.emit(\'' + eventName + '\', ' + JSON.stringify(eventParams) + ');';
     console.log('emitStr: ' + emitStr);
     eval(emitStr);
 };
@@ -132,7 +145,9 @@ var notifyUsers = (userIds, eventName, eventParams) => {
 
         var userId = userIds[i];
         var socket = socketConnections[userId];
-        console.log('emitting to socket: ' + socket.id);
+        // console.log('emitting to socket: ' + socket.id);
+        // console.log('eventName: ' + eventName); 
+        // console.log('eventParams: ' + eventParams);
 
         io.to(socket.id).emit(eventName, eventParams);
     }

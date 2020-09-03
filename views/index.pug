@@ -40,8 +40,13 @@ block content
       });
 
       // message received 
-      socket.on('chat message', function(eventParams){
-        $('#messages').append($('<li>').text(eventParams));
+      socket.on('chat message', function(eventObj) {
+        $('#messages').append($('<li>').text(eventObj.msg));
+      });
+
+      socket.on('update', function(eventObj) {
+        window.alert('this is an update event');
+        $('#messages').append($('<li>').text('this is an update event: ' + JSON.stringify(eventObj)));
       });
     });
     

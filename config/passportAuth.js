@@ -93,7 +93,7 @@ module.exports.authorize = (socket, next) => {
 			// create user property 
 			// console.log('socket.id: ' + socket.id);
 			// socket.handshake.user = jwtPayload.username;
-			console.log('jti: ' + jwtPayload.jti);
+			// console.log('jti: ' + jwtPayload.jti);
 
 			// log user id socket connection
 			socketConnections[jwtPayload.sub] = socket;

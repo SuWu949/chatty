@@ -47,7 +47,6 @@ io.attach(server, {
             "Access-Control-Allow-Credentials": true
         };
         
-        console.log('hello preflight');
         res.writeHead(200, headers);
         res.end();
     }

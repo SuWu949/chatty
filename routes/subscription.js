@@ -2,23 +2,36 @@ var express = require('express');
 var router = express.Router();
 var socketApi = require('../socketApi');
 
-// return array of new channels to subscribe to from request body
+// return array of new channels to subscribe to from request body  (rn : parse data the main channel data  )
 function parseChannels(req) {
+
+    console.log('in parseChannels');
     var newChannels = [];
+
+    console.log('req body' + JSON.stringify(req.body));
+
     var data = req.body.data;
     var newChannels = []; 
-    for (var i = 0; i < data.length; i++) {
-        var entry = data[i]; 
 
-        newChannels.push(entry.attributes.channel);
-        console.log(entry.attributes.channel);
+    var mainChannel = data.type + '_' + data.id;
+    newChannels.push(mainChannel);
+
+    // // TODO: revisit check if data is an array? 
+    var included = req.body.included;
+    for (var i = 0; i < included.length; i++) {
+        var entry = included[i]; 
+
+        var currChannel = entry.type + '_' + entry.id;
+        newChannels.push(currChannel);
     }
+
     return newChannels;
 };
 
 // subscribe to channels in request body
 router.post('/subscribe', function(req, res, next) {
 
+    console.log('here in subscribe');
     var query = req.query.q; 
     var queryArr = query.split(':');
 
