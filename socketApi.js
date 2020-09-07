@@ -30,9 +30,7 @@ var subscribeByUser = (userIds, channels) => {
     for (var i = 0; i < userIds.length; i++) {
 
         var userId = userIds[i];
-        // console.log('userId: ' + userId); 
-        // console.log(socketConnections);
-        console.log('channels to join: ' + channels);
+        // console.log('channels to join: ' + channels);
 
         if (userId in socketConnections) {
 
