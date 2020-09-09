@@ -13,11 +13,11 @@ function parseChannels(req) {
         for (var i = 0; i < data.length; i++) {
             var entry = data[i];
 
-            var currChannel = entry.type + '_' + entry.id;
+            var currChannel = entry.type + '-' + entry.id;
             newChannels.push(currChannel);
         }
     } else {
-        var mainChannel = data.type + '_' + data.id;
+        var mainChannel = data.type + '-' + data.id;
         newChannels.push(mainChannel);
     }
 
@@ -26,7 +26,7 @@ function parseChannels(req) {
         for (var i = 0; i < included.length; i++) {
             var entry = included[i];
 
-            var currChannel = entry.type + '_' + entry.id;
+            var currChannel = entry.type + '-' + entry.id;
             newChannels.push(currChannel);
         }
     }
@@ -38,8 +38,14 @@ function parseChannels(req) {
 router.post('/subscribe', function(req, res, next) {
 
     var query = req.query.q; 
+
+    if (!query.includes(':')) {
+        console.log('improper format');
+        res.status(400).json({msg : 'query parameter improperly formatted.'});
+    }
+
     var queryArr = query.split(':');
-    console.log(JSON.stringify(req.body, null, 2));
+    // console.log(JSON.stringify(req.body, null, 2));
 
     // remove element at index 0
     var flag = queryArr.shift();
@@ -82,6 +88,8 @@ router.post('/unsubscribe', function(req, res, next) {
         // unsubscribe 'userIds' from 'channels'
         var userIds = queryArr[0].split(',');
         var channels = parseChannels(req);
+
+        console.log('channels: ' + channels);
 
         socketApi.unsubscribeByUser(userIds, channels);
         res.status(200).json({msg : 'Unsubscribed'});

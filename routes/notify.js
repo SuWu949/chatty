@@ -26,6 +26,13 @@ function parseEvent(req) {
 router.post('/', function(req, res, next) {
 
     var query = req.query.q; 
+
+    if ((query == null) || (!query.includes(':'))) {
+        console.log('improper format');
+        res.status(400).json({msg : 'query parameter improperly formatted.'});
+        return;
+    }
+
     var queryArr = query.split(':');
 
     // remove element at index 0

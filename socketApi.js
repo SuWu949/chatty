@@ -48,7 +48,7 @@ var subscribeByUser = (userIds, channels) => {
     }
     setTimeout(() => { 
                         console.log('Current subscriptions for user id: ' + userId); 
-                        console.log(Object.keys(userSocket.rooms));
+                        console.log(JSON.stringify(Object.keys(userSocket.rooms)));
                     },
                 1000);
     // console.log('Current subscriptions for user id: ' + userId); 
@@ -120,21 +120,42 @@ var unsubscribeByChannel = (channels) => {
             });
         } 
     }
+
+    setTimeout(() => {
+            console.log('Current subscriptions for user id: ' + userId);
+            console.log(JSON.stringify(Object.keys(userSocket.rooms)));
+            },
+        1000);
 }
 
-// only once if uesr in multiple channels , no duplicate messages 
+// split into efficient and inefficient notify? with origin flag
+// only once if uesr in multiple channels , no duplicate messages
 var notifyChannels = (channels, eventName, eventParams) => {
     
-    var emitStr = 'io';
     for (var i = 0; i < channels.length; i++) {
 
-        var channel = channels[i];
-        var newEmit = '.to(\'' + channel + '\')';
-        emitStr += newEmit; 
+        var currChannel = channels[i];
+
+        // with origin option (TODO make more general, put split on rails side + single quotes)
+        var channelProperties = currChannel.split('-');
+
+        eventParams["id"] = parseInt(channelProperties[channelProperties.length-1]);
+        eventParams["type"] = channelProperties.slice(0, -1).join('-');
+        // --- end origin option
+
+        io.to(currChannel).emit(eventName, eventParams);
     }
-    emitStr += '.emit(\'' + eventName + '\', ' + JSON.stringify(eventParams) + ');';
-    console.log('emitStr: ' + emitStr);
-    eval(emitStr);
+
+    // efficient
+    // var emitStr = 'io';
+    // for (var i = 0; i < channels.length; i++) {
+
+    //     var channel = channels[i];
+    //     var newEmit = '.to(\'' + channel + '\')';
+    //     emitStr += newEmit;
+    // }
+    // emitStr += '.emit(\'' + eventName + '\', ' + JSON.stringify(eventParams) + ');';
+    // eval(emitStr);
 };
 
 var notifyUsers = (userIds, eventName, eventParams) => {
