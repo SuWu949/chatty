@@ -17,7 +17,10 @@ router.get('/subscriptions', function(req, res, next) {
 router.get('/participants', function(req, res, next) {
     var channel = req.query.channel; 
 
+    // console.log('req: ' + JSON.stringify(req));
+
     console.log('in route');
+    console.log('channel: ' + channel);
     var users = socketApi.getParticipants(channel);
 
     res.send(users);

@@ -97,6 +97,8 @@ module.exports.authorize = (socket, next) => {
 
 			// log user id socket connection
 			socketConnections[jwtPayload.sub] = socket;
+			console.log('socket type: ' + typeof socket);
+			console.log(socket);
 
 			console.log('Authenticated socket for user id: ' + jwtPayload.sub);
 			next();

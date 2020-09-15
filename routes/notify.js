@@ -19,49 +19,58 @@ function parseEvent(req) {
             eventParams.push(params[key]);
         }
     }
-
     return eventParams;
 }
 
+// control/notify
+// parameters:
+// method = channels/channels-efficient/users
+// add = origin/
 router.post('/', function(req, res, next) {
 
-    var query = req.query.q; 
+    console.log('req.query: ' + JSON.stringify(req.query));
 
-    if ((query == null) || (!query.includes(':'))) {
-        console.log('improper format');
+    var query = req.query;
+
+    if ((query == null)) {
+        res.status(400).json({msg : 'query parameter method required.'});
+        return;
+    } else if (!query.method.includes(':')) {
         res.status(400).json({msg : 'query parameter improperly formatted.'});
         return;
     }
 
-    var queryArr = query.split(':');
+    var methodArr = query.method.split(':');
 
     // remove element at index 0
-    var flag = queryArr.shift();
+    var flag = methodArr.shift();
+
+    // Parse body TODO: error check
+    var eventName = req.body.event;
+    var eventParams = req.body.attributes;
 
     if (flag === 'channels') {
-        var channels = queryArr[0].split(',');
-        var eventName = req.body.event;
-        var eventParams = req.body.attributes; 
+        var channels = methodArr[0].split(',');
 
-        socketApi.notifyChannels(channels, eventName, eventParams);
-        res.status(200).json({msg : 'Notified'});
+        socketApi.notifyChannels(channels, eventName, eventParams, false);
+        res.status(200).json({msg : 'Notified'}); // TODO: error check
 
-    } else if (flag == 'users') { 
-        var userIds = queryArr[0].split(',');
-        var eventName = req.body.event; 
-        var eventParams = req.body.attributes;
+    } else if (flag == 'channels-efficient') {
 
-        // console.log('userIds: ' + userIds);
-        // console.log('eventName: ' + eventName);
-        // console.log('eventParams: ' + JSON.stringify(eventParams));
+        var channels = methodArr[0].split(',');
+
+        socketApi.notifyChannels(channels, eventName, eventParams, true);
+        res.status(200).json({msg : 'Notified'}); // TODO: error check
+
+    } else if (flag == 'users') {
+        var userIds = methodArr[0].split(',');
 
         socketApi.notifyUsers(userIds, eventName, eventParams);
-        res.status(200).json({msg : 'Notified'});
+        res.status(200).json({msg : 'Notified'}); // TODO: error check
 
     } else {
         res.status(400).json({msg : queryArr[0] + ' is not a valid query parameter flag.'});
     }
-
 });
 
 module.exports = router;

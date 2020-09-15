@@ -30,29 +30,21 @@ var subscribeByUser = (userIds, channels) => {
     for (var i = 0; i < userIds.length; i++) {
 
         var userId = userIds[i];
-        // console.log('channels to join: ' + channels);
 
         if (userId in socketConnections) {
 
             var userSocket = socketConnections[userId];
             userSocket.join(channels);
 
-            // // var userSocket = socketConnections2.key(userId); //
-            // userSocket.join(channels, () => {
-            //     const subscriptions = Object.keys(userSocket.rooms);
-            //     console.log("All current subscriptions: " + subscriptions);
-            // });
         } else {
             console.log('User not found.');
         }
     }
-    setTimeout(() => { 
-                        console.log('Current subscriptions for user id: ' + userId); 
-                        console.log(JSON.stringify(Object.keys(userSocket.rooms)));
-                    },
-                1000);
-    // console.log('Current subscriptions for user id: ' + userId); 
-    // console.log(Object.keys(userSocket.rooms));
+    // setTimeout(() => {
+    //                     console.log('Current subscriptions for user id: ' + userId);
+    //                     console.log(JSON.stringify(Object.keys(userSocket.rooms)));
+    //                 },
+    //             1000);
 };
 
 // subscribe all users subscribed to 'channels' to 'newChannels' as well
@@ -121,41 +113,47 @@ var unsubscribeByChannel = (channels) => {
         } 
     }
 
-    setTimeout(() => {
-            console.log('Current subscriptions for user id: ' + userId);
-            console.log(JSON.stringify(Object.keys(userSocket.rooms)));
-            },
-        1000);
+    // setTimeout(() => {
+    //         console.log('Current subscriptions for user id: ' + userId);
+    //         console.log(JSON.stringify(Object.keys(userSocket.rooms)));
+    //         },
+    //     1000);
 }
 
 // split into efficient and inefficient notify? with origin flag
 // only once if uesr in multiple channels , no duplicate messages
-var notifyChannels = (channels, eventName, eventParams) => {
+var notifyChannels = (channels, eventName, eventParams, efficient) => {
     
-    for (var i = 0; i < channels.length; i++) {
+    console.log('channels: ' + channels);
+    console.log('eventName: ' + eventName);
+    console.log('eventParams: ' + JSON.stringify(eventParams));
 
-        var currChannel = channels[i];
+    if (efficient) {
+        var emitStr = 'io';
+        for (var i = 0; i < channels.length; i++) {
 
-        // with origin option (TODO make more general, put split on rails side + single quotes)
-        var channelProperties = currChannel.split('-');
+            var channel = channels[i];
+            var newEmit = '.to(\'' + channel + '\')';
+            emitStr += newEmit;
+        }
+        emitStr += '.emit(\'' + eventName + '\', ' + JSON.stringify(eventParams) + ');';
+        eval(emitStr);
 
-        eventParams["id"] = parseInt(channelProperties[channelProperties.length-1]);
-        eventParams["type"] = channelProperties.slice(0, -1).join('-');
-        // --- end origin option
+    } else {
+        for (var i = 0; i < channels.length; i++) {
 
-        io.to(currChannel).emit(eventName, eventParams);
+            var currChannel = channels[i];
+
+            // with origin option (TODO make more general, put split on rails side + single quotes)
+            var channelProperties = currChannel.split('-');
+
+            eventParams["id"] = parseInt(channelProperties[channelProperties.length-1]);
+            eventParams["type"] = channelProperties.slice(0, -1).join('-');
+            // --- end origin option
+
+            io.to(currChannel).emit(eventName, eventParams);
+        }
     }
-
-    // efficient
-    // var emitStr = 'io';
-    // for (var i = 0; i < channels.length; i++) {
-
-    //     var channel = channels[i];
-    //     var newEmit = '.to(\'' + channel + '\')';
-    //     emitStr += newEmit;
-    // }
-    // emitStr += '.emit(\'' + eventName + '\', ' + JSON.stringify(eventParams) + ');';
-    // eval(emitStr);
 };
 
 var notifyUsers = (userIds, eventName, eventParams) => {
@@ -164,9 +162,6 @@ var notifyUsers = (userIds, eventName, eventParams) => {
 
         var userId = userIds[i];
         var socket = socketConnections[userId];
-        // console.log('emitting to socket: ' + socket.id);
-        // console.log('eventName: ' + eventName); 
-        // console.log('eventParams: ' + eventParams);
 
         io.to(socket.id).emit(eventName, eventParams);
     }
@@ -183,11 +178,22 @@ var getSubscriptions = (userId) => {
     return subscriptions;
 };
 
-// get participants (socket ids) in channel 
+// get participants (userIds) in channel
+
 var getParticipants = (channel) => {
 
-    var channelSockets= io.sockets.adapter.rooms[channel].sockets
-    return channelSockets; 
+    var channelSockets = io.sockets.adapter.rooms[channel].sockets;
+    // console.log('channelSockets: ');
+    // console.log( channelSockets);
+    var userIds = [];
+
+    Object.keys(channelSockets).forEach((socketId, index) => {
+        var currUserId = Object.keys(socketConnections).find(key => socketConnections[key]['id'] == socketId);
+        userIds.push(currUserId);
+    });
+
+    console.log('userIds: ' + userIds);
+    return userIds;
 };
 
 module.exports = {

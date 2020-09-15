@@ -6,7 +6,6 @@ var socketApi = require('../socketApi');
 function parseChannels(req) {
 
     var newChannels = [];
-    // console.log('req body' + JSON.stringify(req.body));
 
     var data = req.body.data;
     if (Array.isArray(data)) {
@@ -45,7 +44,6 @@ router.post('/subscribe', function(req, res, next) {
     }
 
     var queryArr = query.split(':');
-    // console.log(JSON.stringify(req.body, null, 2));
 
     // remove element at index 0
     var flag = queryArr.shift();
@@ -65,6 +63,8 @@ router.post('/subscribe', function(req, res, next) {
 
         var userIds = queryArr[0].split(',');
         var newChannels = parseChannels(req);
+
+        // console.log('new channels to subscribe to: ' + newChannels);
 
         socketApi.subscribeByUser(userIds, newChannels);
         res.status(200).json({msg : 'Subscribed'});
