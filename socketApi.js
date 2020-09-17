@@ -70,22 +70,21 @@ var subscribeByChannel = (channels, newChannels) => {
 };
 
 // Unsubscribe user(s) from channel(s)
-var unsubscribeByUser = (userIds, channels) => { 
+var unsubscribeByUser = (userIds, oldChannels) => {
     for (var i = 0; i < userIds.length; i++) {
         var userId = userIds[i];
         var userSocket = socketConnections[userId];
 
-        for (var j = 0; j < channels.length; j++) { 
-            var channel = channels[j];
+        for (var j = 0; j < oldChannels.length; j++) {
+            var channel = oldChannels[j];
             userSocket.leave(channel);
         }
     }
 };
 
 // Unsubscribe all users from channel(s)
-var unsubscribeByChannel = (channels) => { 
+var unsubscribeByChannel = (channels, oldChannels) => {
     for (var i = 0; i < channels.length; i++) {
-
         var channel = channels[i];
         var channelInfo = io.sockets.adapter.rooms[channel];
 
@@ -96,7 +95,11 @@ var unsubscribeByChannel = (channels) => {
             var userSockets = Object.keys(channelInfo.sockets);
             userSockets.forEach(function(socketId) {
                 var socket = io.sockets.connected[socketId];
-                socket.leave(channel);
+
+                for (var j = 0; j < oldChannels.length; j++) {
+                    var oldChannel = oldChannels[j];
+                    socket.leave(oldChannel);
+                }
             });
         } 
     }

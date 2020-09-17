@@ -79,12 +79,13 @@ router.post('/unsubscribe', function(req, res, next) {
     var queryArr = query.split(':');
     var flag = queryArr.shift();
 
+    var oldChannels = parseChannels(req);
+
     if (flag === 'users') {
 
         var userIds = queryArr[0].split(',');
-        var channels = parseChannels(req);
 
-        socketApi.unsubscribeByUser(userIds, channels);         // TODO: error check
+        socketApi.unsubscribeByUser(userIds, oldChannels);         // TODO: error check
         res.status(200).json({msg : 'Unsubscribed'});           // TODO: more info
     
     } else if (flag === 'channels') {
