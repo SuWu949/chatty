@@ -1,30 +1,29 @@
+/*
+ * Socket.io pub sub library functions
+ */
+
 var socket_io = require('socket.io');
 var passportAuth = require('./config/passportAuth'); 
 
 var socketConnections = passportAuth.socketConnections;
-
 var io = socket_io();
 
-// require authentication for each socket connection
+// Set middleware to require authentication for each socket connection
 io.use(passportAuth.authorize());
 
+// Called when a new socket connection is registered
 io.on('connection', function(socket){
 
-    socket.emit('chat message', {msg: 'User connected with socket: ' + socket.id});  // lookup user id? bimap
+    // For use with sample chat application
+    // socket.emit('chat message', {msg: 'User connected with socket: ' + socket.id});
     console.log('Socket ' + socket.id + ' connected.');
 
     socket.on('disconnect', () => {
         console.log('Socket ' + socket.id + ' disconnected');
     });
-
-    socket.on('chat message', (msg) => {
-       console.log('message: ' + msg);
-       io.emit('chat message', msg);
-    });
-
 });
 
-// subscribe a user socket to one or more rooms 
+// Subscribe a user socket(s) to channel(s)
 var subscribeByUser = (userIds, channels) => {
 
     for (var i = 0; i < userIds.length; i++) {
@@ -40,32 +39,29 @@ var subscribeByUser = (userIds, channels) => {
             console.log('User not found.');
         }
     }
-    // setTimeout(() => {
-    //                     console.log('Current subscriptions for user id: ' + userId);
-    //                     console.log(JSON.stringify(Object.keys(userSocket.rooms)));
-    //                 },
-    //             1000);
+
+    /*
+     * Delay required for subscription to be completed
+     * setTimeout(() => {
+     *                     console.log('Current subscriptions for user id: ' + userId);
+     *                     console.log(JSON.stringify(Object.keys(userSocket.rooms)));
+     *                 },
+     *             1000);
+     */
 };
 
-// subscribe all users subscribed to 'channels' to 'newChannels' as well
+// Subscribe all users subscribed to 'channels' to 'newChannels' as well
 var subscribeByChannel = (channels, newChannels) => { 
-
     for (var i = 0; i < channels.length; i++) {
-        
         var channel = channels[i];
-        console.log('curr channel: ' + channel);
-
         var channelInfo = io.sockets.adapter.rooms[channel];
+
+        // Check that target channel exists
         if (typeof channelInfo !== 'undefined' && channelInfo) {
-            
-            //target channel exists (has sockets subscribed)
+
+            // Subscribe all sockets to 'newChannels'
             var userSockets = Object.keys(channelInfo.sockets);
-            console.log('userSockets: ' + userSockets);
-
-            // subscribe all sockets subscribed to channel to newChannels as well
             userSockets.forEach(function(socketId) {
-
-                // look up socket obj by id
                 var socket = io.sockets.connected[socketId];
                 socket.join(newChannels);
             });
@@ -73,65 +69,53 @@ var subscribeByChannel = (channels, newChannels) => {
     }
 };
 
-// unsubscribe 'userIds' from 'channels'
+// Unsubscribe user(s) from channel(s)
 var unsubscribeByUser = (userIds, channels) => { 
-
     for (var i = 0; i < userIds.length; i++) {
-
         var userId = userIds[i];
         var userSocket = socketConnections[userId];
 
         for (var j = 0; j < channels.length; j++) { 
-
             var channel = channels[j];
             userSocket.leave(channel);
         }
     }
 };
 
-// unsubscribe all users from 'channels'
+// Unsubscribe all users from channel(s)
 var unsubscribeByChannel = (channels) => { 
-
     for (var i = 0; i < channels.length; i++) {
 
         var channel = channels[i];
-
         var channelInfo = io.sockets.adapter.rooms[channel];
+
+        // Check that target channel exists
         if (typeof channelInfo !== 'undefined' && channelInfo) {
             
-            //target channel exists (has sockets subscribed)
+            // Unsubscribe all users from 'channels'
             var userSockets = Object.keys(channelInfo.sockets);
-            console.log('userSockets: ' + userSockets);
-
-            // unsubscribe all sockets subscribed to channel 
             userSockets.forEach(function(socketId) {
-
-                // look up socket obj by id
                 var socket = io.sockets.connected[socketId];
                 socket.leave(channel);
             });
         } 
     }
 
-    // setTimeout(() => {
-    //         console.log('Current subscriptions for user id: ' + userId);
-    //         console.log(JSON.stringify(Object.keys(userSocket.rooms)));
-    //         },
-    //     1000);
+    /*
+     * Delay required for subscription to be completed
+     * setTimeout(() => {
+     *                     console.log('Current subscriptions for user id: ' + userId);
+     *                     console.log(JSON.stringify(Object.keys(userSocket.rooms)));
+     *                 },
+     *             1000);
+     */
 }
 
-// split into efficient and inefficient notify? with origin flag
-// only once if uesr in multiple channels , no duplicate messages
+// Emit event to channel(s)
 var notifyChannels = (channels, eventName, eventParams, efficient) => {
-    
-    console.log('channels: ' + channels);
-    console.log('eventName: ' + eventName);
-    console.log('eventParams: ' + JSON.stringify(eventParams));
-
     if (efficient) {
         var emitStr = 'io';
         for (var i = 0; i < channels.length; i++) {
-
             var channel = channels[i];
             var newEmit = '.to(\'' + channel + '\')';
             emitStr += newEmit;
@@ -141,7 +125,6 @@ var notifyChannels = (channels, eventName, eventParams, efficient) => {
 
     } else {
         for (var i = 0; i < channels.length; i++) {
-
             var currChannel = channels[i];
 
             // with origin option (TODO make more general, put split on rails side + single quotes)
@@ -156,10 +139,9 @@ var notifyChannels = (channels, eventName, eventParams, efficient) => {
     }
 };
 
+// Emit event to user(s)
 var notifyUsers = (userIds, eventName, eventParams) => {
-
     for (var i = 0; i < userIds.length; i++) {
-
         var userId = userIds[i];
         var socket = socketConnections[userId];
 
@@ -167,24 +149,18 @@ var notifyUsers = (userIds, eventName, eventParams) => {
     }
 }
 
-// get channel subscriptions by userId
+// Retrieve all subscriptions of user
 var getSubscriptions = (userId) => {
     var userSocket = socketConnections[userId]; 
-    // var userSocket = socketConnections2.key(userId); //
     const subscriptions = Object.keys(userSocket.rooms);
 
-    // removes socketId at index 0 
     var socketId = subscriptions.shift();
     return subscriptions;
 };
 
-// get participants (userIds) in channel
-
+// Retrieve all user(s) subscribed to channel
 var getParticipants = (channel) => {
-
     var channelSockets = io.sockets.adapter.rooms[channel].sockets;
-    // console.log('channelSockets: ');
-    // console.log( channelSockets);
     var userIds = [];
 
     Object.keys(channelSockets).forEach((socketId, index) => {
@@ -192,7 +168,6 @@ var getParticipants = (channel) => {
         userIds.push(currUserId);
     });
 
-    console.log('userIds: ' + userIds);
     return userIds;
 };
 

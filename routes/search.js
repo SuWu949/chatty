@@ -1,10 +1,16 @@
+/*
+ * Router for search endpoints
+ */
+
 var express = require('express');
 var router = express.Router();
 var socketApi = require('../socketApi');
 
-// Get subscriptions by userId
+// Get all channel subscriptions by userId
 router.get('/subscriptions', function(req, res, next) {
     var userId = req.query.userId; 
+
+    // TODO: error check user exists
   
     var channels = socketApi.getSubscriptions(userId);
     console.log('Subscriptions: ' + channels);
@@ -13,16 +19,12 @@ router.get('/subscriptions', function(req, res, next) {
   });
 
 
-// Get participants in channel
+// Get userIds subscribed to channel
 router.get('/participants', function(req, res, next) {
     var channel = req.query.channel; 
-
-    // console.log('req: ' + JSON.stringify(req));
-
-    console.log('in route');
-    console.log('channel: ' + channel);
     var users = socketApi.getParticipants(channel);
 
+    // TODO: error check code
     res.send(users);
 });
 

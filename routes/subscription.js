@@ -1,13 +1,16 @@
+/*
+ * Router for subscription endpoints
+ */
+
 var express = require('express');
 var router = express.Router();
 var socketApi = require('../socketApi');
 
-// return array of new channels to subscribe to from request body  (rn : parse data the main channel data  )
+// Return array of new channels parsed from json api object
 function parseChannels(req) {
-
     var newChannels = [];
-
     var data = req.body.data;
+
     if (Array.isArray(data)) {
         for (var i = 0; i < data.length; i++) {
             var entry = data[i];
@@ -15,6 +18,7 @@ function parseChannels(req) {
             var currChannel = entry.type + '-' + entry.id;
             newChannels.push(currChannel);
         }
+
     } else {
         var mainChannel = data.type + '-' + data.id;
         newChannels.push(mainChannel);
@@ -33,80 +37,65 @@ function parseChannels(req) {
     return newChannels;
 };
 
-// subscribe to channels in request body
+// Subscribe user(s) to channels in json api body object, create channels if they don't exist
 router.post('/subscribe', function(req, res, next) {
+    var query = req.query;
 
-    var query = req.query.q; 
-
-    if (!query.includes(':')) {
-        console.log('improper format');
-        res.status(400).json({msg : 'query parameter improperly formatted.'});
+    if ((query == null)) {
+        res.status(400).json({msg : 'Query parameter \'q\' required.'});
+        return;
+    } else if (!query.q.includes(':')) {
+        res.status(400).json({msg : 'Query parameter improperly formatted.'});
+        return;
     }
 
-    var queryArr = query.split(':');
-
-    // remove element at index 0
+    var queryArr = query.q.split(':');
     var flag = queryArr.shift();
 
     if (flag === 'channels') { 
 
-        // subscribe all users in query parameter channels 
         var channels = queryArr[0].split(',');
         var newChannels = parseChannels(req);
 
-        socketApi.subscribeByChannel(channels, newChannels);
-        res.status(200).json({msg : 'Subscribed'});
+        socketApi.subscribeByChannel(channels, newChannels);        // TODO: error check
+        res.status(200).json({msg : 'Subscribed'});                 // TODO: more info
         
     } else if (flag === 'users') {
-
-        // subscribe users by id
 
         var userIds = queryArr[0].split(',');
         var newChannels = parseChannels(req);
 
-        // console.log('new channels to subscribe to: ' + newChannels);
-
-        socketApi.subscribeByUser(userIds, newChannels);
-        res.status(200).json({msg : 'Subscribed'});
+        socketApi.subscribeByUser(userIds, newChannels);            // TODO: error check
+        res.status(200).json({msg : 'Subscribed'});                 // TODO: more info
     
     } else {
-        res.status(400).json({msg : queryArr[0] + ' is not a valid query parameter flag.'});
+        res.status(400).json({msg : queryArr[0] + ' is not a valid query parameter \'q\' flag.'});
     }
 });
   
-// unsubscribe a user from a channel
+// Unsubscribe user(s) from channels in json api body object
 router.post('/unsubscribe', function(req, res, next) {
-    
     var query = req.query.q; 
     var queryArr = query.split(':');
-
-    // remove element at index 0
     var flag = queryArr.shift();
 
     if (flag === 'users') {
 
-        // unsubscribe 'userIds' from 'channels'
         var userIds = queryArr[0].split(',');
         var channels = parseChannels(req);
 
-        console.log('channels: ' + channels);
-
-        socketApi.unsubscribeByUser(userIds, channels);
-        res.status(200).json({msg : 'Unsubscribed'});
+        socketApi.unsubscribeByUser(userIds, channels);         // TODO: error check
+        res.status(200).json({msg : 'Unsubscribed'});           // TODO: more info
     
     } else if (flag === 'channels') {
-        
-        // unsubscribe all users from channels in 'channels'
         var channels = queryArr[0].split(',');
 
-        socketApi.unsubscribeByChannel(channels);
-        res.status(200).json({msg : 'Unsubscribed'});
+        socketApi.unsubscribeByChannel(channels);               // TODO: error check
+        res.status(200).json({msg : 'Unsubscribed'});           // TODO: more info
 
     } else {
         res.status(400).json({msg : queryArr[0] + ' is not a valid query parameter flag.'})
     }
-    
 });
 
 module.exports = router;
-  

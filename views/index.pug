@@ -1,3 +1,6 @@
+//-
+  Sample view for a chat application
+
 extends layout
 
 block content
@@ -20,6 +23,7 @@ block content
   script(src='https://code.jquery.com/jquery-3.4.1.min.js')
   script.
     $(function () {
+      // Open a socket connection with jwt authentication
       var socket = io('/', 
                         {
                           transportOptions: {
@@ -31,7 +35,7 @@ block content
                           }
                         });
 
-      // message sent
+      // Upon form submission, emit 'chat message' event
       $('form').submit(function(e) {
         e.preventDefault(); // prevents page reloading
         socket.emit('chat message', $('#m').val());
@@ -39,16 +43,9 @@ block content
         return false;
       });
 
-      // message received 
+      // 'chat message' event received
       socket.on('chat message', function(eventObj) {
         $('#messages').append($('<li>').text(eventObj.msg));
       });
 
-      socket.on('update', function(eventObj) {
-        window.alert('this is an update event');
-        $('#messages').append($('<li>').text('this is an update event: ' + JSON.stringify(eventObj)));
-      });
     });
-    
-
-   
