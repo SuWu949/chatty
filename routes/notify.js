@@ -21,7 +21,7 @@ router.post('/', function(req, res, next) {
     }
 
     var methodArr = query.method.split(':');
-    var flag = methodArr.shift();
+    var option = methodArr.shift();
 
     if ((req.body.event == null) || (req.body.attributes == null)) {
         res.status(400).json({msg: 'Properties \'event\' and \'attributes\' required.'});
@@ -30,7 +30,7 @@ router.post('/', function(req, res, next) {
     var eventName = req.body.event;
     var eventParams = req.body.attributes;
 
-    if (flag === 'channels') {
+    if (option === 'channels') {
         var channels = methodArr[0].split(',');
 
         if (socketApi.notifyChannels(channels, eventName, eventParams, false)) {
@@ -39,7 +39,7 @@ router.post('/', function(req, res, next) {
             res.status(500);
         }
 
-    } else if (flag == 'channels-efficient') {
+    } else if (option == 'channels-efficient') {
 
         var channels = methodArr[0].split(',');
 
@@ -49,7 +49,7 @@ router.post('/', function(req, res, next) {
             res.status(500);
         }
 
-    } else if (flag == 'users') {
+    } else if (option == 'users') {
         var userIds = methodArr[0].split(',');
 
         if (socketApi.notifyUsers(userIds, eventName, eventParams)) {

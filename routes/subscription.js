@@ -42,18 +42,18 @@ router.post('/subscribe', function(req, res, next) {
     var query = req.query;
 
     if ((query == null)) {
-        res.status(400).json({msg : 'Query parameter \'q\' required.'});
+        res.status(400).json({msg : 'Query parameter \'method\' required.'});
         return;
-    } else if (!query.q.includes(':')) {
+    } else if (!query.method.includes(':')) {
         res.status(400).json({msg : 'Query parameter improperly formatted.'});
         return;
     }
 
-    var queryArr = query.q.split(':');
-    var flag = queryArr.shift();
+    var methodArr = query.method.split(':');
+    var option = methodArr.shift();
 
-    if (flag === 'channels') { 
-        var channels = queryArr[0].split(',');
+    if (option === 'channels') {
+        var channels = methodArr[0].split(',');
         var newChannels = parseChannels(req);
 
         if (socketApi.subscribeByChannel(channels, newChannels)) {
@@ -63,8 +63,8 @@ router.post('/subscribe', function(req, res, next) {
 
         }
 
-    } else if (flag === 'users') {
-        var userIds = queryArr[0].split(',');
+    } else if (option === 'users') {
+        var userIds = methodArr[0].split(',');
         var newChannels = parseChannels(req);
 
         if (socketApi.subscribeByUser(userIds, newChannels)) {
@@ -74,21 +74,31 @@ router.post('/subscribe', function(req, res, next) {
         }
 
     } else {
-        res.status(400).json({msg : queryArr[0] + ' is not a valid query parameter \'q\' flag.'});
+        res.status(400).json({msg : methodArr[0] + ' is not a valid query parameter \'method\' option.'});
     }
 });
   
 // Unsubscribe user(s) from channels in json api body object
 router.post('/unsubscribe', function(req, res, next) {
-    var query = req.query.q; 
-    var queryArr = query.split(':');
-    var flag = queryArr.shift();
+
+    var query = req.query;
+
+    if ((query == null)) {
+        res.status(400).json({msg : 'Query parameter \'method\' required.'});
+        return;
+    } else if (!query.method.includes(':')) {
+        res.status(400).json({msg : 'Query parameter improperly formatted.'});
+        return;
+    }
+
+    var methodArr = query.method.split(':');
+    var option = methodArr.shift();
 
     var oldChannels = parseChannels(req);
 
-    if (flag === 'users') {
+    if (option === 'users') {
 
-        var userIds = queryArr[0].split(',');
+        var userIds = methodArr[0].split(',');
 
         if (socketApi.unsubscribeByUser(userIds, oldChannels)) {
             res.status(200).json({msg : 'Unsubscribed'});
@@ -96,8 +106,8 @@ router.post('/unsubscribe', function(req, res, next) {
             res.status(500);
         }
     
-    } else if (flag === 'channels') {
-        var channels = queryArr[0].split(',');
+    } else if (option === 'channels') {
+        var channels = methodArr[0].split(',');
 
         if (socketApi.unsubscribeByChannel(channels)) {
             res.status(200).json({msg : 'Unsubscribed'});
@@ -105,7 +115,7 @@ router.post('/unsubscribe', function(req, res, next) {
             res.status(500);
         }
     } else {
-        res.status(400).json({msg : queryArr[0] + ' is not a valid query parameter flag.'})
+        res.status(400).json({msg : methodArr[0] + ' is not a valid query parameter \'method\' option.'})
     }
 });
 
