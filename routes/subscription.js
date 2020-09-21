@@ -50,12 +50,13 @@ router.post('/subscribe', function(req, res, next) {
     }
 
     var methodArr = query.method.split(':');
-    var option = methodArr.shift();
+    var flag = methodArr.shift();
 
-    if (option === 'channels') {
+    if (flag === 'channels') {
         var channels = methodArr[0].split(',');
         var newChannels = parseChannels(req);
 
+        console.log('newChannels: ' + newChannels);
         if (socketApi.subscribeByChannel(channels, newChannels)) {
             res.status(200).json({msg : 'Subscribed'});
         } else {
@@ -63,7 +64,7 @@ router.post('/subscribe', function(req, res, next) {
 
         }
 
-    } else if (option === 'users') {
+    } else if (flag === 'users') {
         var userIds = methodArr[0].split(',');
         var newChannels = parseChannels(req);
 
@@ -92,11 +93,11 @@ router.post('/unsubscribe', function(req, res, next) {
     }
 
     var methodArr = query.method.split(':');
-    var option = methodArr.shift();
+    var flag = methodArr.shift();
 
     var oldChannels = parseChannels(req);
 
-    if (option === 'users') {
+    if (flag === 'users') {
 
         var userIds = methodArr[0].split(',');
 
@@ -106,7 +107,7 @@ router.post('/unsubscribe', function(req, res, next) {
             res.status(500);
         }
     
-    } else if (option === 'channels') {
+    } else if (flag === 'channels') {
         var channels = methodArr[0].split(',');
 
         if (socketApi.unsubscribeByChannel(channels)) {

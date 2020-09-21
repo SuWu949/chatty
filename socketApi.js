@@ -70,6 +70,9 @@ var subscribeByChannel = (channels, newChannels) => {
                 var userSockets = Object.keys(channelInfo.sockets);
                 userSockets.forEach(function(socketId) {
                     var socket = io.sockets.connected[socketId];
+                    if (typeof socket == 'undefined') {
+                        throw 'Socket no longer exists, disconnected.';
+                    }
                     socket.join(newChannels);
                 });
             }
@@ -139,7 +142,7 @@ var unsubscribeByChannel = (channels, oldChannels) => {
 }
 
 // Emit event to channel(s)
-var notifyChannels = (channels, eventName, eventParams, efficient) => {
+var notifyChannels = (channels, eventName, eventParams, efficient, options) => {
     try {
         if (efficient) {
             var emitStr = 'io';
@@ -155,13 +158,11 @@ var notifyChannels = (channels, eventName, eventParams, efficient) => {
             for (var i = 0; i < channels.length; i++) {
                 var currChannel = channels[i];
 
-                // with origin option (TODO make more general, put split on rails side + single quotes)
-                var channelProperties = currChannel.split('-');
-
-                eventParams["id"] = parseInt(channelProperties[channelProperties.length-1]);
-                eventParams["type"] = channelProperties.slice(0, -1).join('-');
-                // --- end origin option
-
+                if ('add' in options) {
+                    if (options['add'] == 'origin') {
+                        eventParams["origin"] = currChannel;
+                    }
+                }
                 io.to(currChannel).emit(eventName, eventParams);
             }
         }

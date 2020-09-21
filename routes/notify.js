@@ -21,7 +21,7 @@ router.post('/', function(req, res, next) {
     }
 
     var methodArr = query.method.split(':');
-    var option = methodArr.shift();
+    var flag = methodArr.shift();
 
     if ((req.body.event == null) || (req.body.attributes == null)) {
         res.status(400).json({msg: 'Properties \'event\' and \'attributes\' required.'});
@@ -29,30 +29,33 @@ router.post('/', function(req, res, next) {
 
     var eventName = req.body.event;
     var eventParams = req.body.attributes;
+    var rooms = methodArr[0].split(',');
 
-    if (option === 'channels') {
-        var channels = methodArr[0].split(',');
+    // Parse additional options
+    var options = {};
+    if (query.add != null) {
+        if (query.add != 'origin') {
+            res.status(400).json({msg: query.add + ' is not a valid \'add\' query parameter option.'});
+        }
+        options['add'] = query.add;
+    }
 
-        if (socketApi.notifyChannels(channels, eventName, eventParams, false)) {
+    if (flag === 'channels') {
+        if (socketApi.notifyChannels(rooms, eventName, eventParams, false, options)) {
             res.status(200).json({msg : 'Notified.'});
         } else {
             res.status(500);
         }
 
-    } else if (option == 'channels-efficient') {
-
-        var channels = methodArr[0].split(',');
-
-        if (socketApi.notifyChannels(channels, eventName, eventParams, true)) {
+    } else if (flag == 'channels-efficient') {
+        if (socketApi.notifyChannels(rooms, eventName, eventParams, true, options)) {
             res.status(200).json({msg : 'Notified.'});
         } else {
             res.status(500);
         }
 
-    } else if (option == 'users') {
-        var userIds = methodArr[0].split(',');
-
-        if (socketApi.notifyUsers(userIds, eventName, eventParams)) {
+    } else if (flag == 'users') {
+        if (socketApi.notifyUsers(rooms, eventName, eventParams)) {
             res.status(200).json({msg : 'Notified.'});
         } else {
             res.status(500);
