@@ -23,19 +23,29 @@ function(req, res) {''
 // Update jwt secret used for 'passport-jwt' strategy
 router.put('/update-jwt-secret', (req, res) => {
 
-    const newSecret = req.body.secret;  //TODO: error check that new secret is provided
+    if (req.body.secret == null) {
+        res.status(400).json({msg : 'Property \'secret\' required.'});
+    }
+
+    var newSecret = req.body.secret;
     config.auth.jwtSecret = newSecret; 
 
-    passportAuth.reconfigure();
-    // TODO: error codes
+    if (passportAuth.reconfigure()) {
+        res.status(500);
 
-    res.status(200).send({ msg: 'Updated jwt secret' });
+    } else {
+        res.status(200).send({msg:'Updated jwt secret'});
+    }
 });
 
 // Register a new user with 'passport-local' strategy
 router.post('/register', async (req, res) => {
 
-    const newUsername = req.body.username;          //TODO: error check require
+    if ((req.body.username == null) || (req.body.password == null)) {
+        res.status(400).json({msg : 'Properties \'username\' and \'password\' required.'});
+    }
+
+    const newUsername = req.body.username;
     const newPassword = req.body.password;
 
     // Time required for authentication using bcrypt
@@ -46,7 +56,7 @@ router.post('/register', async (req, res) => {
         const newPasswordHash = await bcrypt.hash(newPassword, hashCost);  
 
         if (newUsername in users) {
-            res.status(400).send({ error: 'user already exists' });
+            res.status(400).send({msg: 'User already exists'});
         }
 
         /*
@@ -64,15 +74,13 @@ router.post('/register', async (req, res) => {
         res.status(200).send({newUsername});
       
     } catch (error) {
-        res.status(400).send({
-            error: 'req body should take the form { username, password }',
-        });
+        res.status(400).send({msg: 'Request body should take the form { username, password }'});
     }
   });
 
 // Login with user document, create jwt upon success
 router.post('/login', 
-    passport.authenticate('local', { session: false }),
+    passport.authenticate('local', {session: false}),
     function(req, res) {
 
         console.log('Log in successful with user: ' + req.user);
@@ -84,15 +92,15 @@ router.post('/login',
 
         req.login(payload, {session: false}, (error) => {
             if (error) {
-                res.status(400).send({ error });
+                res.status(400).send({error});
             }
 
             // Generate signed JWT
             const token = jwt.sign(JSON.stringify(payload), config.auth.jwtSecret);   
 
             // Assign JWT to cookie
-            res.cookie('jwt', token, { httpOnly: true, secure: true });
-            res.status(200).send({ msg: 'Logged in' });
+            res.cookie('jwt', token, {httpOnly: true, secure: true});
+            res.status(200).send({msg: 'Logged in.'});
 
             // TODO: Store jti to implement jwt revocation strategy
             // TODO: Redirect authenticated user

@@ -78,10 +78,16 @@ passport.use(jwtStrategy);
 
 // Modify jwt strategy with new secret
 module.exports.reconfigure = () => { 
-	options.secretOrKey = config.auth.jwtSecret;
-	jwtStrategy = new JwtStrategy(options, verify);
-	passport.use(jwtStrategy);
-	console.log('Updated options secret: ' + options.secretOrKey);
+	try {
+		options.secretOrKey = config.auth.jwtSecret;
+		jwtStrategy = new JwtStrategy(options, verify);
+		passport.use(jwtStrategy);
+		console.log('Updated options secret: ' + options.secretOrKey);
+		return true;
+	} catch (err) {
+		console.log(err);
+		return false;
+	}
 }
 
 module.exports.authorize = (socket, next) => {

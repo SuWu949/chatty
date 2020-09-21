@@ -53,21 +53,26 @@ router.post('/subscribe', function(req, res, next) {
     var flag = queryArr.shift();
 
     if (flag === 'channels') { 
-
         var channels = queryArr[0].split(',');
         var newChannels = parseChannels(req);
 
-        socketApi.subscribeByChannel(channels, newChannels);        // TODO: error check
-        res.status(200).json({msg : 'Subscribed'});                 // TODO: more info
-        
-    } else if (flag === 'users') {
+        if (socketApi.subscribeByChannel(channels, newChannels)) {
+            res.status(200).json({msg : 'Subscribed'});
+        } else {
+            res.status(500);
 
+        }
+
+    } else if (flag === 'users') {
         var userIds = queryArr[0].split(',');
         var newChannels = parseChannels(req);
 
-        socketApi.subscribeByUser(userIds, newChannels);            // TODO: error check
-        res.status(200).json({msg : 'Subscribed'});                 // TODO: more info
-    
+        if (socketApi.subscribeByUser(userIds, newChannels)) {
+            res.status(200).json({msg : 'Subscribed'});
+        } else {
+            res.status(500);
+        }
+
     } else {
         res.status(400).json({msg : queryArr[0] + ' is not a valid query parameter \'q\' flag.'});
     }
@@ -85,15 +90,20 @@ router.post('/unsubscribe', function(req, res, next) {
 
         var userIds = queryArr[0].split(',');
 
-        socketApi.unsubscribeByUser(userIds, oldChannels);         // TODO: error check
-        res.status(200).json({msg : 'Unsubscribed'});           // TODO: more info
+        if (socketApi.unsubscribeByUser(userIds, oldChannels)) {
+            res.status(200).json({msg : 'Unsubscribed'});
+        } else {
+            res.status(500);
+        }
     
     } else if (flag === 'channels') {
         var channels = queryArr[0].split(',');
 
-        socketApi.unsubscribeByChannel(channels);               // TODO: error check
-        res.status(200).json({msg : 'Unsubscribed'});           // TODO: more info
-
+        if (socketApi.unsubscribeByChannel(channels)) {
+            res.status(200).json({msg : 'Unsubscribed'});
+        } else {
+            res.status(500);
+        }
     } else {
         res.status(400).json({msg : queryArr[0] + ' is not a valid query parameter flag.'})
     }
