@@ -15,6 +15,8 @@ To start the chat server locally on port 9999:
 $ PORT=9999 bin/www
 ```
 
+Project initialized with [express-generator](https://www.npmjs.com/package/express-generator).
+
 # Configuration 
 Create a [.env](https://www.npmjs.com/package/dotenv) file in the root directory specifying environment variables. E.g.:
 	
@@ -29,12 +31,16 @@ Refer to `config.js` for declared environment variables. Currently set up for `t
 # Authentication
 Configured Passport.js [passport-jwt](http://www.passportjs.org/packages/passport-jwt/) and [passport-local](http://www.passportjs.org/packages/passport-local/) strategies. 
 
-`passport-local` configured to authenticate previously reqistered users through the `auth/register` endopint with a `username` and `password`. Password encrypted using [bcrypt](https://www.npmjs.com/package/bcrypt). Optionally add a user model and database in `models/users.js`. Upon successful log in of a`passport-local` authenticated endpoint, a JWT generated using the configured JWT secret is returned as a cookie. 
+`passport-local` configured to authenticate previously reqistered users through the `POST auth/register` endopint with a `username` and `password`. Password encrypted using [bcrypt](https://www.npmjs.com/package/bcrypt). Optionally add a user model and database in `models/users.js`. Upon successful log in of a`passport-local` authenticated endpoint, a JWT generated using the configured JWT secret is returned as a cookie. 
 
 
 `passport-jwt` configured to authenticate based on the provided JWT and the configured JWT secret. JWT required in the `authorization` header as a bearer token of the socket connection request for a successful socket connection. Example found in `index.pug`.  
 
-Optionally require jwt (‘passport-jwt’) or user log in (‘passport-local’) authentication at endpoints using passport.authenticate(‘[insert configured passport strategy name]’, {}). Example at GET auth/test-jwt.
+Optionally require jwt (`passport-jwt`) or user log in (`passport-local`) authentication at endpoints using: 
+
+	passport.authenticate(‘[insert configured passport strategy name]’, {}) 
+	
+Example at `GET auth/test-jwt`.
 
 # Usage
 
@@ -47,7 +53,7 @@ Pass the socket event to emit in the POST body. Must contain an ‘event’ and 
 			 "time-sent": 2004-09-16T00:00:00Z, 
 			 "sender": "user-1"
           		}
-        }
+      }
 
 ### POST ‘control/notify’ 
 Emit socket event defined in request body.
@@ -103,7 +109,7 @@ Update the secret used for ‘passport-jwt’ authentication.
 
 ### POST ‘/auth/register’
 Register a new user  
-- Require body with ‘username’ and ‘password’ properties
+- Require body with `username` and `password` properties
 
 ### POST ‘/auth/login’
 Log in with a user, must have been registered. Once authenticated with ‘passport-local’ strategy, a jwt is returned as a cookie
