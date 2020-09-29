@@ -21,7 +21,7 @@ Project initialized with [express-generator](https://www.npmjs.com/package/expre
 Create a [.env](https://www.npmjs.com/package/dotenv) file in the root directory specifying environment variables. E.g.:
 	
 	DEV_APP_PORT = 9999 				// default is 3000
-	DEV_JWT_SECRET = [your jwt secret key] 		(*)
+	DEV_JWT_SECRET = [your jwt secret key] 		// (*)
 	DEV_MAX_REQ_SIZE = 50mb 			// Max http request size (*)
 	
 	* required
