@@ -3,19 +3,25 @@
 
 Chatty is a [pub/sub](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) system built as a companion to supplement traditional web app servers. While existing pub/sub solutions are user-driven, requiring user directives to trigger subscribe/unsubscribe funcationality, chatty is designed to be programmatically controlled by the app server. Built with [Node.js](https://github.com/nodejs), [Express.js](https://github.com/expressjs/express), [Socket.io](https://github.com/socketio/socket.io), and [Passport.js](http://www.passportjs.org/) for [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token) authentication of web sockets, and adhering to the [json:api](https://jsonapi.org/) specification, the aim is to provide an efficient and configurable solution made by and for developers to build upon for their product specific use cases. This pub/sub system is ideal for real time updating or serving as the basis of other functionality, such as in a chat application. 
 
-# Getting Started
-To start the chat server on default port 3000:
-
-```
-$ bin/www
-```
-
-To start the chat server locally on port 9999:
-```
-$ PORT=9999 bin/www
-```
-
 Project initialized with [express-generator](https://www.npmjs.com/package/express-generator).
+
+# Getting Started
+1. Install modules: e.g. using yarn -  `yarn install`
+
+2. Add a `.env` file. See section "Configuration" below. 
+
+3. Start the chat server  
+
+	Start on default port 3000:
+
+	```
+	$ bin/www
+	```
+
+	To start the chat server locally on port 9999:
+	```
+	$ PORT=9999 bin/www
+	```
 
 # Configuration 
 Create a [.env](https://www.npmjs.com/package/dotenv) file in the root directory specifying environment variables. E.g.:
