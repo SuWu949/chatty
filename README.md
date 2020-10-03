@@ -65,10 +65,10 @@ Pass the socket event to emit in the POST body. Must contain an ‘event’ and 
 Emit socket event defined in request body.
 
 Query parameters
-- (Required) `method` = channels:[channel-1, channel-2,...] || channels-efficient:[channel-1, channel-2,...] || users:[userId-1, userId-2,...] 
-	1.`channels`: emit event to all subscribers of specified channels, duplicate event receipts allowed
-        2. `channels-efficient`: emit event to all subscribers of specified channels, subscribers in more than one channel will only receive one event
-        3. `users`: emit event to all users specified
+- (Required) `method` = channels:[channel-1, channel-2,...] || channels-efficient:[channel-1, channel-2,...] || users:[userId-1, userId-2,...]
+	1.`channels`: emit event to all subscribers of specified channels, duplicate event receipts allowed  
+	2. `channels-efficient`: emit event to all subscribers of specified channels, subscribers in more than one channel will only receive one event  
+	3. `users`: emit event to all users specified  
 - (Optional) `add` = origin
         1. `origin`: add the name of the message origin channel as property ‘origin’ to the emitted socket event
 
@@ -79,17 +79,17 @@ POST body required to adhere to [json:api](https://jsonapi.org/). Channels progr
 Subscribe to channel(s) defined by primary and related data in JSON:api object passed in body. 
 
 Query parameters
-- (Required) `method` = channels:[channel-1, channel-2,...] || users:[userId-1, userId-2,...]  
-        1. `channels`: subscribe all users subscribed to channels specified in query to channels parsed from body
-        2. `users`: subscribe users to channels parsed from body 
+- (Required) `method` = channels:[channel-1, channel-2,...] || users:[userId-1, userId-2,...]
+        1. `channels`: subscribe all users subscribed to channels specified in query to channels parsed from body  
+        2. `users`: subscribe users to channels parsed from body  
 
 ### POST ‘control/subscription/unsubscribe’
 Unsubscribe from channel(s) defined by primary and related data in JSON:api object passed in body. 
 
 Query parameters: 
 - (Required) `method` = channels:[channel-1, channel-2,...]  || users:[userId-1, userId-2,...]  
-        1. `channels`: unsubscribe all users subscribed to channels specified in query from channels parsed from body
-        2. `users`: unsubscribe users from channels parsed from body
+        1. `channels`: unsubscribe all users subscribed to channels specified in query from channels parsed from body  
+        2. `users`: unsubscribe users from channels parsed from body  
 
 ## Search 
 ### GET ‘control/search/subscriptions’
