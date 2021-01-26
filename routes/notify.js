@@ -59,21 +59,21 @@ router.post('/', function(req, res, next) {
         if (socketApi.notifyChannels(rooms, eventName, eventParams, false, options)) {
             res.status(200).json({msg : 'Notified.'});
         } else {
-            res.status(500);
+            res.status(500).end();
         }
 
     } else if (flag == 'channels-efficient') {
         if (socketApi.notifyChannels(rooms, eventName, eventParams, true, options)) {
             res.status(200).json({msg : 'Notified.'});
         } else {
-            res.status(500);
+            res.status(500).end();
         }
 
     } else if (flag == 'users') {
         if (socketApi.notifyUsers(rooms, eventName, eventParams)) {
             res.status(200).json({msg : 'Notified.'});
         } else {
-            res.status(500);
+            res.status(500).end();
         }
 
     } else {

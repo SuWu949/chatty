@@ -24,14 +24,14 @@ const { expressionToConstant } = require('constantinople');
 
 // Get all channel subscriptions by userId
 router.get('/subscriptions', function(req, res, next) {
-    var userId = req.query.userId; 
+    var userId = req.query.userId;
 
     if (userId in socketApi.socketConnections) {
       var channels = socketApi.getSubscriptions(userId);
       if (channels != null) {
         res.status(200).send(channels);
       } else {
-        res.status(500);
+        res.status(500).end();
       }
     } else {
       res.status(400).json({msg: 'User does not exist.'});
@@ -40,7 +40,7 @@ router.get('/subscriptions', function(req, res, next) {
 
 // Get userIds subscribed to channel
 router.get('/participants', function(req, res, next) {
-    var channel = req.query.channel; 
+    var channel = req.query.channel;
     var users = socketApi.getParticipants(channel);
 
     if (users != null) {
