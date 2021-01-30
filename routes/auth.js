@@ -43,10 +43,10 @@ router.put('/update-jwt-secret', (req, res) => {
     }
 
     var newSecret = req.body.secret;
-    config.auth.jwtSecret = newSecret; 
+    config.auth.jwtSecret = newSecret;
 
     if (passportAuth.reconfigure()) {
-        res.status(500);
+        res.status(500).end();
 
     } else {
         res.status(200).send({msg:'Updated jwt secret'});
@@ -66,9 +66,9 @@ router.post('/register', async (req, res) => {
     // Time required for authentication using bcrypt
     // https://pthree.org/wp-content/uploads/2016/06/bcrypt.png
     const hashCost = 4;
-  
+
     try {
-        const newPasswordHash = await bcrypt.hash(newPassword, hashCost);  
+        const newPasswordHash = await bcrypt.hash(newPassword, hashCost);
 
         if (newUsername in users) {
             res.status(400).send({msg: 'User already exists'});
@@ -87,14 +87,14 @@ router.post('/register', async (req, res) => {
 
         users[newUsername] = newPasswordHash;
         res.status(200).send({newUsername});
-      
+
     } catch (error) {
         res.status(400).send({msg: 'Request body should take the form { username, password }'});
     }
   });
 
 // Login with user document, create jwt upon success
-router.post('/login', 
+router.post('/login',
     passport.authenticate('local', {session: false}),
     function(req, res) {
 
@@ -111,7 +111,7 @@ router.post('/login',
             }
 
             // Generate signed JWT
-            const token = jwt.sign(JSON.stringify(payload), config.auth.jwtSecret);   
+            const token = jwt.sign(JSON.stringify(payload), config.auth.jwtSecret);
 
             // Assign JWT to cookie
             res.cookie('jwt', token, {httpOnly: true, secure: true});
@@ -121,5 +121,5 @@ router.post('/login',
             // TODO: Redirect authenticated user
         });
     });
-  
+
   module.exports = router;

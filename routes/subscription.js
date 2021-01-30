@@ -74,7 +74,7 @@ router.post('/subscribe', function(req, res, next) {
         if (socketApi.subscribeByChannel(channels, newChannels)) {
             res.status(200).json({msg : 'Subscribed'});
         } else {
-            res.status(500);
+            res.status(500).end();
 
         }
 
@@ -85,14 +85,14 @@ router.post('/subscribe', function(req, res, next) {
         if (socketApi.subscribeByUser(userIds, newChannels)) {
             res.status(200).json({msg : 'Subscribed'});
         } else {
-            res.status(500);
+            res.status(500).end();
         }
 
     } else {
         res.status(400).json({msg : methodArr[0] + ' is not a valid query parameter \'method\' option.'});
     }
 });
-  
+
 // Unsubscribe user(s) from channels in json api body object
 router.post('/unsubscribe', function(req, res, next) {
 
@@ -118,16 +118,16 @@ router.post('/unsubscribe', function(req, res, next) {
         if (socketApi.unsubscribeByUser(userIds, oldChannels)) {
             res.status(200).json({msg : 'Unsubscribed'});
         } else {
-            res.status(500);
+            res.status(500).end();
         }
-    
+
     } else if (flag === 'channels') {
         var channels = methodArr[0].split(',');
 
         if (socketApi.unsubscribeByChannel(channels)) {
             res.status(200).json({msg : 'Unsubscribed'});
         } else {
-            res.status(500);
+            res.status(500).end();
         }
     } else {
         res.status(400).json({msg : methodArr[0] + ' is not a valid query parameter \'method\' option.'})
