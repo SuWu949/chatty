@@ -21,14 +21,14 @@
  * Module dependencies.
  */
 
-var app = require('../app');  
+var app = require('../app');
 var debug = require('debug')('chatty:server');
-var http = require('http'); 
+var http = require('http');
 const config = require('../config/config');
 
 /**
  * Get port from environment and store in Express.
- */ 
+ */
 
 var port = normalizePort(config.app.port);
 app.set('port', port);
@@ -37,13 +37,13 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-var server = http.createServer(app); 
+var server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port, () => { 
+server.listen(port, () => {
   console.log('listening on *:' + port);
 })
 server.on('error', onError);
@@ -53,21 +53,15 @@ server.on('listening', onListening);
  * Socket.io
  */
 
-var socketApi = require('../socketApi');   
-var io = socketApi.io;                     
+var socketApi = require('../socketApi');
+var io = socketApi.io;
 
 io.attach(server, {
-      handlePreflightRequest: (req, res) => {
-        const headers = {
-            "Access-Control-Allow-Headers": "Authorization, Origin",
-            "Access-Control-Allow-Origin": req.headers.origin, //or the specific origin you want to give access to,
-            "Access-Control-Allow-Methods": "GET, OPTIONS",
-            "Access-Control-Allow-Credentials": true
-        };
-        
-        res.writeHead(200, headers);
-        res.end();
-    }
+  // Allow everything because authentication is bearer token-based.
+  cors: {
+    origin: "*",
+    methods: "*"
+  }
 });
 
 /**
