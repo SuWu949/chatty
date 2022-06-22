@@ -18,10 +18,12 @@
 // Socket.io pub sub library functions
 
 var socket_io = require('socket.io');
-var passportAuth = require('./config/passportAuth'); 
+var passportAuth = require('./config/passportAuth');
 const { TooManyRequests } = require('http-errors');
 
-var socketConnections = passportAuth.socketConnections;
+const userIdsToSocketArrays = {};
+const socketIdsToUserIds = {};
+
 var io = socket_io();
 
 // Set middleware to require authentication for each socket connection
@@ -34,23 +36,51 @@ io.on('connection', function(socket){
     // socket.emit('chat message', {msg: 'User connected with socket: ' + socket.id});
     console.log('Socket ' + socket.id + ' connected.');
 
+    // Assume that the `passportAuth` module has assigned the user id from the JWT.
+    const userId = socket.userId;
+    let sockets = userIdsToSocketArrays[userId];
+
+    if (!sockets) {
+        sockets = [];
+        userIdsToSocketArrays[userId] = sockets;
+    }
+
+    sockets.push(socket);
+
+    // Register the reverse mapping.
+    socketIdsToUserIds[socket.id] = userId;
+
     socket.on('disconnect', () => {
-        console.log('Socket ' + socket.id + ' disconnected');
+        const socketId = socket.id
+
+        console.log('Socket ' + socketId + ' disconnected');
+
+        const userId = socketIdsToUserIds[socketId];
+        let sockets = userIdsToSocketArrays[userId];
+
+        sockets = sockets.filter((userSocket) => socketId !== userSocket.id);
+
+        if (sockets.length > 0) {
+            userIdsToSocketArrays[userId] = sockets;
+        } else {
+            delete userIdsToSocketArrays[userId];
+        }
+
+        delete socketIdsToUserIds[socketId];
     });
 });
 
 // Subscribe a user socket(s) to channel(s)
 var subscribeByUser = (userIds, channels) => {
+
     try {
         for (var i = 0; i < userIds.length; i++) {
 
             var userId = userIds[i];
+            const sockets = userIdsToSocketArrays[userId];
 
-            if (userId in socketConnections) {
-
-                var userSocket = socketConnections[userId];
-                userSocket.join(channels);
-
+            if (sockets) {
+                sockets.forEach((socket) => socket.join(channels));
             } else {
                 console.log('User not found.');
             }
@@ -72,7 +102,7 @@ var subscribeByUser = (userIds, channels) => {
 };
 
 // Subscribe all users subscribed to 'channels' to 'newChannels' as well
-var subscribeByChannel = (channels, newChannels) => { 
+var subscribeByChannel = (channels, newChannels) => {
     try {
         for (var i = 0; i < channels.length; i++) {
             var channel = channels[i];
@@ -104,11 +134,13 @@ var unsubscribeByUser = (userIds, oldChannels) => {
     try {
         for (var i = 0; i < userIds.length; i++) {
             var userId = userIds[i];
-            var userSocket = socketConnections[userId];
+            const sockets = userIdsToSocketArrays[userId];
 
-            for (var j = 0; j < oldChannels.length; j++) {
-                var channel = oldChannels[j];
-                userSocket.leave(channel);
+            if (sockets) {
+                for (var j = 0; j < oldChannels.length; j++) {
+                    var channel = oldChannels[j];
+                    sockets.forEach((socket) => socket.leave(channel));
+                }
             }
         }
         return true;
@@ -193,9 +225,11 @@ var notifyUsers = (userIds, eventName, eventParams) => {
     try {
         for (var i = 0; i < userIds.length; i++) {
             var userId = userIds[i];
-            var socket = socketConnections[userId];
+            var sockets = userIdsToSocketArrays[userId];
 
-            io.to(socket.id).emit(eventName, eventParams);
+            if (sockets) {
+                sockets.forEach((socket) => io.to(socket.id).emit(eventName, eventParams));
+            }
         }
         return true;
     } catch(error) {
@@ -207,11 +241,19 @@ var notifyUsers = (userIds, eventName, eventParams) => {
 // Retrieve all subscriptions of user
 var getSubscriptions = (userId) => {
     try {
-        var userSocket = socketConnections[userId];
-        const subscriptions = Object.keys(userSocket.rooms);
+        const sockets = userIdsToSocketArrays[userId];
 
-        subscriptions.shift();
-        return subscriptions;
+        if (sockets) {
+            return [
+                ...new Set(sockets.reduce((memo, socket) => {
+                    const subscriptions = [...socket.rooms];
+                    subscriptions.shift();
+                    return memo.concat(subscriptions);
+                }, []))
+            ];
+        } else {
+            return [];
+        }
     } catch(error) {
         console.log(error);
         return null;
@@ -220,31 +262,35 @@ var getSubscriptions = (userId) => {
 
 // Retrieve all user(s) subscribed to channel
 var getParticipants = (channel) => {
-    var channelObject = io.sockets.adapter.rooms[channel];
-    if (typeof channelObject != 'undefined') {
-        var channelSockets = channelObject.sockets;
-        var userIds = [];
+    var channelSockets = io.sockets.adapter.rooms.get(channel);
 
-        Object.keys(channelSockets).forEach((socketId, index) => {
-            var currUserId = Object.keys(socketConnections).find(key => socketConnections[key]['id'] == socketId);
-            userIds.push(currUserId);
-        });
+    if (channelSockets) {
+        return [
+            ...new Set([...channelSockets].reduce((memo, socketId) => {
+                const userId = socketIdsToUserIds[socketId];
 
-        return userIds;
+                if (userId) {
+                    memo.push(userId);
+                }
+
+                return memo;
+            }, []))
+        ];
     } else {
         return null;
     }
 };
 
 module.exports = {
-    io: io,  
-    subscribeByUser: subscribeByUser, 
-    subscribeByChannel: subscribeByChannel,
-    unsubscribeByUser: unsubscribeByUser,
-    unsubscribeByChannel: unsubscribeByChannel,
-    notifyChannels: notifyChannels, 
-    notifyUsers: notifyUsers,
-    getSubscriptions: getSubscriptions,
-    getParticipants: getParticipants, 
-    socketConnections: socketConnections
+    io,
+    subscribeByUser,
+    subscribeByChannel,
+    unsubscribeByUser,
+    unsubscribeByChannel,
+    notifyChannels,
+    notifyUsers,
+    getSubscriptions,
+    getParticipants,
+    userIdsToSocketArrays,
+    socketIdsToUserIds
 };

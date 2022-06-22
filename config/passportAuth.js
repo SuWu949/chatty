@@ -27,14 +27,11 @@ const ExtractJwt = require('passport-jwt').ExtractJwt;
 const config = require('./config');
 const users = require('../models/users').users;
 
-// Mapping of user ids to socket objects
-var socketConnections = {};
-
 /*
  * Configure 'passport-local' strategy
  */
 
-passport.use(new LocalStrategy( 
+passport.use(new LocalStrategy(
 	function (username, password, done) {
 
 		console.log('in local strategy config');
@@ -48,16 +45,16 @@ passport.use(new LocalStrategy(
 			*/
 
 			const userPasswordHash = users[username];
-			if (userPasswordHash == null) { 
-				return done(null, false, {message: 'User ' + username + ' not found'});  // TODO: pass error message through 401 
-			} 
+			if (userPasswordHash == null) {
+				return done(null, false, {message: 'User ' + username + ' not found'});  // TODO: pass error message through 401
+			}
 
 			const passwordsMatch = bcrypt.compare(password, userPasswordHash, function (err, isMatch) {
 				if (err) throw err;
 				if(isMatch){
 					console.log('Correct password');
 					return done(null, username, {message: 'Correct password'});
-				} else { 
+				} else {
 					console.log('Incorrect password');
 					return done(null, false, {message: 'Incorrect Username / Password'});
 				}
@@ -73,12 +70,12 @@ passport.use(new LocalStrategy(
  */
 
 var options =  {
-	jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),    
-	secretOrKey: config.auth.jwtSecret                                         
+	jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+	secretOrKey: config.auth.jwtSecret
 }
 
 // Callback called when the jwt presented is valid
-function verify(jwtPayload, done) { 
+function verify(jwtPayload, done) {
 	// We can still additionally verify the token (based on payload) here
 
 	console.log('jwtPayload: ');
@@ -88,11 +85,11 @@ function verify(jwtPayload, done) {
 }
 
 // Intial new jwt strategy instantiation
-var jwtStrategy = new JwtStrategy(options, verify); 
+var jwtStrategy = new JwtStrategy(options, verify);
 passport.use(jwtStrategy);
 
 // Modify jwt strategy with new secret
-module.exports.reconfigure = () => { 
+module.exports.reconfigure = () => {
 	try {
 		options.secretOrKey = config.auth.jwtSecret;
 		jwtStrategy = new JwtStrategy(options, verify);
@@ -117,9 +114,10 @@ module.exports.authorize = (socket, next) => {
 			// console.log(socket.handshake);
 
 			// Log new user socket connection
-			socketConnections[jwtPayload.sub] = socket;
+			const userId = jwtPayload.sub;
+			socket.userId = userId;
 
-			console.log('Authenticated socket for user id: ' + jwtPayload.sub);
+			console.log('Authenticated socket for user id: ' + userId);
 			next();
 		}
 
@@ -131,12 +129,11 @@ module.exports.authorize = (socket, next) => {
 		jwtStrategy.error = function error (err) {
 			console.log('jwt authentication error: ' + err);  // TODO: return error code
 			next(err);
-		} 
-		
+		}
+
 		// Authenticate socket connection request with passport
 		jwtStrategy.authenticate(socket.request, {});
   }
 }
 
 module.exports.passport = passport;
-module.exports.socketConnections = socketConnections; 
