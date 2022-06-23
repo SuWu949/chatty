@@ -26,7 +26,7 @@ const { expressionToConstant } = require('constantinople');
 router.get('/subscriptions', function(req, res, next) {
     var userId = req.query.userId;
 
-    if (userId in socketApi.socketConnections) {
+    if (userId in socketApi.userIdsToSocketArrays) {
       var channels = socketApi.getSubscriptions(userId);
       if (channels != null) {
         res.status(200).send(channels);
