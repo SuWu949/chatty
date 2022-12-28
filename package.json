@@ -20,7 +20,7 @@
     "jade": "~1.11.0",
     "jstransformer": "^1.0.0",
     "mongoose": "^5.9.26",
-    "passport": "^0.4.1",
+    "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "pug": "^3.0.1",
