@@ -19,7 +19,7 @@
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
     "jstransformer": "^1.0.0",
-    "mongoose": "^5.9.26",
+    "mongoose": "^5.13.15",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
